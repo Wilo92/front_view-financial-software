@@ -30,14 +30,14 @@ const Login = () => {
 
     try {
       await clienteAxios.get("/sanctum/csrf-cookie");
-      const response = await clienteAxios.post("/login", {
+      const response = await clienteAxios.post("/api/login", {
         email: formData.email,
         password: formData.password
       });
 
       if (response.status === 200 || response.status === 400) {
         localStorage.setItem("user_active", 'true');
-        navigate("/");
+        navigate("/deudores");
       }
 
     } catch (error) {
@@ -184,8 +184,7 @@ const Login = () => {
         </div>
       </main>
 
-      {/* FOOTER REUTILIZADO */}
-      <Footer />
+     
     </div>
   );
 };
