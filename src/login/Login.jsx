@@ -176,6 +176,19 @@ const Login = () => {
                 {loading ? "Verificando..." : "Iniciar Sesión"}
               </button>
 
+              <div className="text-center mt-4">
+                <p className="text-sm text-gray-600">
+                  ¿No tienes una cuenta?{" "}
+                  <button
+                    type="button"
+                    onClick={() => navigate("/registro")}
+                    className="text-[#3b82f6] font-bold hover:underline"
+                  >
+                    Regístrate aquí
+                  </button>
+                </p>
+              </div>
+
               <p className="text-center text-gray-500 text-xs">
                 Al ingresar aceptas nuestros términos y condiciones.
               </p>
@@ -184,7 +197,7 @@ const Login = () => {
         </div>
       </main>
 
-     
+
     </div>
   );
 };

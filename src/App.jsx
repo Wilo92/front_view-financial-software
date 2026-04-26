@@ -8,6 +8,7 @@ import Login from "./login/Login";
 import ProtectedRoute from "./components/ProtectedRoute";
 import { useState, useEffect } from "react";
 import clienteAxios from './api/axios';
+import Registro from "./pages/Registro";
 
 // Creamos un componente envoltorio para manejar la lógica de la Layout
 const AppContent = () => {
@@ -28,7 +29,7 @@ const AppContent = () => {
         localStorage.removeItem("user_active");
 
         console.log("sesion expirada o invalida")
-     } finally {
+      } finally {
         setChecking(false);
       }
     };
@@ -55,6 +56,7 @@ const AppContent = () => {
       <main className={`flex-grow ${isLoginPage ? "" : "p-10"}`}>
         <Routes>
           <Route path="/login" element={<Login />} />
+          <Route path="/registro" element={<Registro />} />
           <Route path="/" element={<Navigate to="/login" />} />
 
 
