@@ -3,6 +3,7 @@ import logoApp from "../assets/logo.png";
 import "../index.css";
 import { Link, useNavigate } from "react-router-dom";
 import { FaUserCircle, FaSignOutAlt, FaClock } from "react-icons/fa";
+import clienteAxios from "../api/axios";
 
 const Navbar = () => {
 
@@ -87,11 +88,17 @@ const Navbar = () => {
 
   }, []);
 
-  const handleLogout = () => {
-    localStorage.removeItem("user_active");
-    localStorage.removeItem("user_name");
-    localStorage.removeItem("user_email");
-    navigate("/login");
+  const handleLogout = async () => {
+    try {
+      await clienteAxios.post("api/logout");
+    } catch (error) {
+      console.error("error al cerrar la sesion en el servidor", error);
+    } finally {
+      localStorage.clear();
+      navigate("/login");
+
+      window.location.href = "/login";
+    }
   };
 
   return (

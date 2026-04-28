@@ -11,7 +11,7 @@ const Registro = () => {
 
     const [formData, setFormData] = useState({
         name: "",
-        documento_number: "",
+        document_number: "",
         email: "",
         phone: "",
         password: "",
@@ -108,7 +108,7 @@ const Registro = () => {
                                 className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${errors.document_number ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-blue-500/20 outline-none transition-all`}
                             />
                         </div>
-                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name[0]}</p>}
+                        {errors.document_number && <p className="text-red-500 text-xs mt-1">{errors.document_number[0]}</p>}
                     </div>
 
                     {/* Email */}
