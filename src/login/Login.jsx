@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import clienteAxios from '../api/axios';
 import logoApp from "../assets/logo.png";
-import wolfMascot from "../assets/kartero_wolf.png"; // ¡ASEGÚRATE DE ESTA RUTA!
+import wolfMascot from "../assets/Kredi.png"; // ¡ASEGÚRATE DE ESTA RUTA!
 import Footer from "../components/Footer";
 import coinLottie from "../assets/img.lottie";
 import { FaEnvelope, FaLock } from "react-icons/fa";

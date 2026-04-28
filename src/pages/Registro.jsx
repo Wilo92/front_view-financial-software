@@ -11,6 +11,7 @@ const Registro = () => {
 
     const [formData, setFormData] = useState({
         name: "",
+        documento_number: "",
         email: "",
         phone: "",
         password: "",
@@ -39,11 +40,11 @@ const Registro = () => {
 
         try {
             // 1. Limpiamos cualquier rastro previo para forzar frescura
-            await clienteAxios.get("http://localhost:8000/sanctum/csrf-cookie");
+            await clienteAxios.get("/sanctum/csrf-cookie");
 
             // 2. Pequeño truco: Esperar un micro-segundo para que el navegador guarde la cookie
             // 3. El registro (asegúrate que la URL coincida con tu ruta)
-            const response = await clienteAxios.post("/register", formData);
+            const response = await clienteAxios.post("/api/register", formData);
 
             if (response.status === 200 || response.status === 201) {
                 navigate("/deudores");
@@ -88,6 +89,23 @@ const Registro = () => {
                                 onChange={handleChange}
                                 placeholder="Juan Pérez"
                                 className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${errors.name ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-blue-500/20 outline-none transition-all`}
+                            />
+                        </div>
+                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name[0]}</p>}
+                    </div>
+
+                    <div className="space-y-1">
+                        <label className="text-xs font-bold text-gray-500 uppercase ml-1">Documento</label>
+                        <div className="relative">
+                            <FaUser className="absolute left-3 top-3.5 text-gray-400" />
+                            <input
+                                name="document_number"
+                                type="text"
+                                required
+                                value={formData.document_number}
+                                onChange={handleChange}
+                                placeholder="1088..."
+                                className={`w-full pl-10 pr-4 py-2.5 rounded-xl border ${errors.document_number ? 'border-red-500' : 'border-gray-200'} focus:ring-2 focus:ring-blue-500/20 outline-none transition-all`}
                             />
                         </div>
                         {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name[0]}</p>}

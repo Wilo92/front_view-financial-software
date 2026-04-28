@@ -18,7 +18,7 @@ const Navbar = () => {
   }
 
   const [text, setText] = useState("");
-  const fullText = "KARTERO";
+  const fullText = "KREDI";
   useEffect(() => {
     const timer = setInterval(() => {
       setDateTime(new Date());

@@ -59,7 +59,7 @@ const AppContent = () => {
           <Route path="/registro" element={<Registro />} />
           <Route path="/" element={<Navigate to="/login" />} />
 
-
+         
 
 
           <Route element={<ProtectedRoute />}>
