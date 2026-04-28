@@ -10,12 +10,12 @@ export default function Deudores() {
   const [deudores, setDeudores] = useState([]);
   const [form, setForm] = useState({
     nombre: "",
-    cedula: "",
+    tipo_documento: "",
     telefono: "",
     email: "",
     direccion: "",
-    foto: "",
-    saldo_deuda: ""
+    foto: null,
+    comentarios: ""
   });
 
   const [editId, setEditId] = useState(null);
@@ -26,11 +26,11 @@ export default function Deudores() {
     try {
       // Nota: Agregamos /api/ porque Laravel agrupa estas rutas ahí
       const res = await clienteAxios.get("/api/deudores");
-      setDeudores(res.data);
+      setDeudores(res.data.data || res.data);
     } catch (error) {
       console.error("Error al obtener deudores:", error.response);
       if (error.response?.status === 401) {
-        navigate("/login"); // Si no está autorizado, pa' fuera
+        navigate("/login");
       }
     }
   };
@@ -60,12 +60,12 @@ export default function Deudores() {
 
       setForm({
         nombre: "",
-        cedula: "",
+        tipo_documento: "",
+        documento_numero: "",
         telefono: "",
         email: "",
         direccion: "",
-        foto: "",
-        saldo_deuda: ""
+        comentarios: ""
       });
 
       setEditId(null);
@@ -92,7 +92,15 @@ export default function Deudores() {
 
   // editar
   const editar = (deudor) => {
-    setForm(deudor);
+    setForm({
+      nombre: deudor.nombre,
+      tipo_documento: deudor.tipo_documento,
+      documento_numero: deudor.documento_numero,
+      telefono: deudor.telefono,
+      email: deudor.email || "",
+      direccion: deudor.direccion || "",
+      comentarios: deudor.comentarios || ""
+    });
     setEditId(deudor.id);
   };
 
@@ -111,10 +119,17 @@ export default function Deudores() {
 
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 mb-6">
 
-        <input name="nombre" value={form.nombre} onChange={handleChange} placeholder="Nombre y apellido del cliente"
+        <input name="nombre" value={form.nombre} onChange={handleChange} placeholder="Nombre y apellido"
           className="border p-2 rounded" />
 
-        <input name="cedula" value={form.cedula} onChange={handleChange} placeholder="Numero de Cédula"
+        <select name="tipo_documento" value={form.tipo_documento} onChange={handleChange} className="border p-2 rounded">
+          <option value="CC">Cédula de Ciudadanía (CC)</option>
+          <option value="NIT">NIT</option>
+          <option value="CE">Cédula Extranjería (CE)</option>
+          <option value="PP">Pasaporte (PP)</option>
+        </select>
+
+        <input name="documento_numero" value={form.documento_numero} onChange={handleChange} placeholder="Numero de Documento"
           className="border p-2 rounded" />
 
         <input name="telefono" value={form.telefono} onChange={handleChange} placeholder="Numero de teléfono"
@@ -126,10 +141,9 @@ export default function Deudores() {
         <input name="direccion" value={form.direccion} onChange={handleChange} placeholder="Dirección"
           className="border p-2 rounded" />
 
-        <input name="foto" value={form.foto} onChange={handleChange} placeholder="URL Foto"
-          className="border p-2 rounded" />
 
-        <input name="saldo_deuda" value={form.saldo_deuda} onChange={handleChange} placeholder="Saldo deuda"
+
+        <input name="comentarios" value={form.comentarios} onChange={handleChange} placeholder="Comentarios o notas"
           className="border p-2 rounded" />
 
         <button
@@ -147,9 +161,9 @@ export default function Deudores() {
         <thead className="bg-gray-200">
           <tr>
             <th className="p-2">Nombre</th>
-            <th>Cédula</th>
+            <th>Documento</th>
             <th>Teléfono</th>
-            <th>Saldo</th>
+
             <th>Acciones</th>
           </tr>
         </thead>
@@ -160,9 +174,9 @@ export default function Deudores() {
             <tr key={d.id} className="border-t">
 
               <td className="p-2">{d.nombre}</td>
-              <td>{d.cedula}</td>
+              <td>{d.tipo_documento}: {d.documento_numero}</td>
               <td>{d.telefono}</td>
-              <td>${d.saldo_deuda}</td>
+
 
               <td className="space-x-3">
 

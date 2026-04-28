@@ -66,7 +66,7 @@ const Footer = () => {
         <div className="mt-1 pt-1 border-t border-white/5 flex flex-col md:flex-row justify-between items-center gap-4">
           <p className="text-xs text-white font-mono">
             &copy; 2026 KREDI-www.crediorbit.com{" "}
-            <span className="text-blue-500">Desarrollado por @wilo - www.wilolink.online</span>
+            <span className="text-orange-500">Desarrollado por @wilo - www.wilolink.online</span>
           </p>
           <div className="flex gap-6 text-[10px] uppercase tracking-widest text-white">
             <a href="#" className="hover:text-blue-400 transition-colors">
