@@ -24,6 +24,7 @@ export default function Credito() {
         const cargarDeudor = async () => {
             try {
                 const res = await clienteAxios.get(`/api/deudores/${id}`);
+                console.log("Respuesta", res.data);
                 setDeudor(res.data);
             } catch (error) {
                 console.error("Error al cargar los datos del deudor", error);
@@ -45,8 +46,8 @@ export default function Credito() {
                 try {
                     const res = await clienteAxios.post("/api/creditos/simular", form);
                     setPlanProyectado(res.data);
-                } catch (e) { 
-                    console.error("Error en simulación", e); 
+                } catch (e) {
+                    console.error("Error en simulación", e);
                 } finally {
                     setLoadingSimulation(false);
                 }
@@ -67,52 +68,66 @@ export default function Credito() {
         e.preventDefault();
         try {
             await clienteAxios.post("/api/creditos", form);
+
+            setForm({
+                deudor_id: id,
+                monto: "",
+                tasa_interes: "",
+                numero_cuotas: "",
+                fecha_inicio: "",
+                tipo_prestamo: "cuota_fija",
+                frecuencia: "mensual",
+                observaciones: ""
+            });
+            setPlanProyectado([]);
+
             alert("Crédito creado correctamente");
         } catch (error) {
             alert("Error al crear crédito");
         }
     };
-
+    console.log("estado actual", deudor);
     return (
         <div className="max-w-6xl mx-auto p-10">
             <h2 className="text-3xl font-bold mb-6 text-gray-800 text-center">Configurar Nuevo Crédito</h2>
 
             {deudor && (
                 <div className="bg-white shadow-lg rounded-xl p-6 mb-10 border max-w-xl mx-auto text-center">
-                    <h3 className="text-lg font-semibold mb-3 text-gray-700">Cliente Seleccionado</h3>
+                    <h3 className="text-lg font-semibold mb-3 text-gray-700">DEUDOR SELECCIONADO</h3>
                     <p className="text-gray-700"><strong>Nombre: </strong>{deudor.nombre}</p>
-                    <p className="text-gray-700"><strong>Cédula: </strong>{deudor.cedula}</p>
+                    <p className="text-gray-700"><strong>Numero Documento: </strong>{deudor.documento_numero}</p>
                 </div>
+
             )}
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
                 <div className="bg-white shadow-lg rounded-xl p-8 border">
                     <form onSubmit={handleSubmit} className="space-y-5">
-                        
+
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Monto del Préstamo</label>
-                            <input 
-                                type="number" 
-                                name="monto" 
-                                value={form.monto} 
-                                onChange={handleChange} 
-                                className="w-full border rounded-lg p-2 focus:ring-blue-500" 
+                            <input
+                                type="number"
+                                name="monto"
+                                value={form.monto}
+                                onChange={handleChange}
+                                className="w-full border rounded-lg p-2 focus:ring-blue-500"
                                 placeholder="Ej: 500000"
-                                required 
+                                required
                             />
                         </div>
 
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">% Interés (por periodo)</label>
-                                <input 
-                                    type="number" 
-                                    name="tasa_interes" 
-                                    value={form.tasa_interes} 
-                                    onChange={handleChange} 
-                                    className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500" 
+                                <input
+                                    type="number"
+                                    name="tasa_interes"
+                                    value={form.tasa_interes}
+                                    onChange={handleChange}
+                                    className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
                                     placeholder="Ej: 5"
-                                    required 
+                                    required
                                 />
                             </div>
                             <div>
@@ -122,7 +137,7 @@ export default function Credito() {
                                     name="numero_cuotas"
                                     value={form.numero_cuotas}
                                     onChange={handleChange}
-                                    className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500" 
+                                    className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
                                     placeholder="Ej: 12"
                                     required
                                 />
@@ -132,10 +147,10 @@ export default function Credito() {
                         <div className="grid grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Frecuencia de Pago</label>
-                                <select 
-                                    name="frecuencia" 
-                                    value={form.frecuencia} 
-                                    onChange={handleChange} 
+                                <select
+                                    name="frecuencia"
+                                    value={form.frecuencia}
+                                    onChange={handleChange}
                                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="diario">Diario</option>
@@ -146,10 +161,10 @@ export default function Credito() {
                             </div>
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">Método de Pago</label>
-                                <select 
-                                    name="tipo_prestamo" 
-                                    value={form.tipo_prestamo} 
-                                    onChange={handleChange} 
+                                <select
+                                    name="tipo_prestamo"
+                                    value={form.tipo_prestamo}
+                                    onChange={handleChange}
                                     className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
                                 >
                                     <option value="cuota_fija">Cuotas Fijas</option>
@@ -162,13 +177,13 @@ export default function Credito() {
 
                         <div>
                             <label className="block text-sm font-medium text-gray-700 mb-1">Fecha del Primer Pago</label>
-                            <input 
-                                type="date" 
-                                name="fecha_inicio" 
-                                value={form.fecha_inicio} 
-                                onChange={handleChange} 
-                                className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500" 
-                                required 
+                            <input
+                                type="date"
+                                name="fecha_inicio"
+                                value={form.fecha_inicio}
+                                onChange={handleChange}
+                                className="w-full border rounded-lg p-2 focus:ring-2 focus:ring-blue-500"
+                                required
                             />
                         </div>
 
@@ -183,8 +198,8 @@ export default function Credito() {
 
                     {loadingSimulation ? (
                         <div className="flex flex-col items-center justify-center py-10">
-                             <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
-                             <p className="text-gray-500 italic">Calculando cuotas...</p>
+                            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-blue-600 mb-2"></div>
+                            <p className="text-gray-500 italic">Calculando cuotas...</p>
                         </div>
                     ) : planProyectado.length > 0 ? (
                         <div className="max-h-[500px] overflow-y-auto pr-2">

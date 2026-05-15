@@ -10,7 +10,8 @@ export default function Deudores() {
   const [deudores, setDeudores] = useState([]);
   const [form, setForm] = useState({
     nombre: "",
-    tipo_documento: "",
+    tipo_documento: "CC",
+    documento_numero: "",
     telefono: "",
     email: "",
     direccion: "",
@@ -60,12 +61,13 @@ export default function Deudores() {
 
       setForm({
         nombre: "",
-        tipo_documento: "",
+        tipo_documento: "CC",
         documento_numero: "",
         telefono: "",
         email: "",
         direccion: "",
-        comentarios: ""
+        comentarios: "",
+        foto: null
       });
 
       setEditId(null);
@@ -119,7 +121,7 @@ export default function Deudores() {
 
       <form onSubmit={handleSubmit} className="grid grid-cols-2 gap-4 mb-6">
 
-        <input name="nombre" value={form.nombre} onChange={handleChange} placeholder="Nombre y apellido"
+        <input name="nombre" value={form.nombre} onChange={handleChange} placeholder="Nombres y apellidos"
           className="border p-2 rounded" />
 
         <select name="tipo_documento" value={form.tipo_documento} onChange={handleChange} className="border p-2 rounded">
