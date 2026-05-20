@@ -1,6 +1,6 @@
 <div align="center">
 
-# KREDI · Kartero Frontend
+# KREDI · www.crediorbit.com
 
 **Sistema web de gestión de créditos, clientes y cobranza**
 
@@ -10,51 +10,20 @@
 [![Axios](https://img.shields.io/badge/Axios-1.13-5A29E4?style=flat-square)](https://axios-http.com/)
 [![React Router](https://img.shields.io/badge/React_Router-7.13-CA4245?style=flat-square&logo=reactrouter&logoColor=white)](https://reactrouter.com/)
 [![ESLint](https://img.shields.io/badge/ESLint-9-4B32C3?style=flat-square&logo=eslint&logoColor=white)](https://eslint.org/)
-[![License](https://img.shields.io/badge/Licencia-Sin_especificar-lightgrey?style=flat-square)](LICENSE)
 
-*Frontend SPA para operaciones financieras de microcrédito — marca [Crediorbit](https://www.crediorbit.com)*
 
-[Demo / Capturas](#-demo--capturas) ·
-[Instalación](#-instalación) ·
-[API](#-api) ·
-[Arquitectura](#-arquitectura-del-proyecto) ·
-[Autor](#-autor)
+*Frontend SPA para operaciones financieras de microcrédito o sistema de fiado — marca [Crediorbit](https://www.crediorbit.com)*
+
+
 
 </div>
 
----
 
-## 📋 Tabla de contenidos
-
-- [Resumen ejecutivo](#-resumen-ejecutivo)
-- [Demo / Capturas](#-demo--capturas)
-- [Para reclutadores técnicos](#-para-reclutadores-técnicos)
-- [Tecnologías utilizadas](#-tecnologías-utilizadas)
-- [Arquitectura del proyecto](#-arquitectura-del-proyecto)
-- [Estructura del proyecto](#-estructura-del-proyecto)
-- [Características principales](#-características-principales)
-- [Seguridad](#-seguridad)
-- [Base de datos](#-base-de-datos)
-- [API](#-api)
-- [Instalación](#-instalación)
-- [Variables de entorno](#-variables-de-entorno)
-- [Scripts disponibles](#-scripts-disponibles)
-- [Flujo de desarrollo](#-flujo-de-desarrollo)
-- [Despliegue](#-despliegue)
-- [Rendimiento y optimización](#-rendimiento-y-optimización)
-- [Testing](#-testing)
-- [Mejoras futuras](#-mejoras-futuras)
-- [Lecciones técnicas del proyecto](#-lecciones-técnicas-del-proyecto)
-- [Autor](#-autor)
-- [Licencia](#-licencia)
-
----
-
-## 🎯 Resumen ejecutivo
+## Resumen ejecutivo
 
 | Atributo | Detalle |
 |----------|---------|
-| **Nombre npm** | `kartero` |
+| **Desarrollador** | `Wilmer Restrepo (WILO)` |
 | **Marca comercial** | **KREDI** (Crediorbit) |
 | **Tipo** | Single Page Application (SPA) — **solo frontend** |
 | **Repositorio** | [front_view-financial-software](https://github.com/Wilo92/front_view-financial-software) |
@@ -62,55 +31,42 @@
 
 ### Descripción
 
-**KREDI** es la interfaz web de un sistema de gestión financiera orientado a **microcréditos y cobranza**. Permite a operadores autenticados administrar clientes (deudores), originar créditos con simulación de amortización en tiempo real, consultar cuotas pendientes por documento y registrar pagos con distintos métodos.
+**KREDI** es la interfaz web de un sistema de gestión financiera orientado a **microcréditos, cobranza y fiados**. Permite a operadores autenticados administrar clientes (deudores), originar créditos con simulación de amortización en tiempo real, consultar cuotas pendientes por documento y registrar pagos con distintos métodos. Ademas una gestion de fiados para pequenos negocios y comerciantes.
 
 ### Problema que resuelve
 
 Centraliza en una SPA moderna los flujos operativos que tradicionalmente se dispersan en hojas de cálculo o sistemas legacy:
 
-- Registro y autenticación de usuarios operativos.
+- Registro y autenticación de usuarios.
 - Alta y mantenimiento de cartera de clientes.
 - Originación de créditos con múltiples esquemas de amortización.
 - Consulta de obligaciones y registro de pagos.
 
 ### Propósito del sistema
 
-Actuar como **capa de presentación** (`presentation layer`) desacoplada del backend, consumiendo una API REST stateful basada en cookies de sesión Sanctum, con experiencia de usuario pulida (animaciones, diseño responsive, validaciones en cliente).
+Actuar como **capa de presentación** desacoplada del backend, consumiendo una API REST stateful basada en cookies de sesión Sanctum, con experiencia de usuario (animaciones, diseño responsive, validaciones en cliente).
 
 ---
 
-## 📸 Demo / Capturas
-
-> El repositorio **no incluye screenshots**. Se recomienda añadir capturas en `docs/screenshots/` y referenciarlas aquí.
+##
 
 | Vista | Ruta | Qué documentar |
 |-------|------|----------------|
 | Login | `/login` | Pantalla de acceso, animación Lottie, navbar de monedas |
 | Registro | `/registro` | Formulario, indicador de fortaleza de contraseña |
 | Clientes | `/deudores` | Listado, búsqueda, formulario CRUD |
-| Nuevo crédito | `/creditos/crear/:id` | Formulario + tabla de simulación en vivo |
+| Nuevo crédito | `/creditos/crear/:id` | Formulario + tabla de simulación en tiempo real |
 | Pagos | `/pagos` | Búsqueda por documento, modal de pago |
 | Navbar / móvil | Global | Menú drawer, reloj zona Colombia |
 
-**Sugerencia de estructura:**
 
-```text
-docs/screenshots/
-├── 01-login.png
-├── 02-registro.png
-├── 03-deudores.png
-├── 04-credito-simulacion.png
-├── 05-pagos-modal.png
-└── 06-navbar-mobile.png
-```
 
----
 
-## 👔 Para reclutadores técnicos
+## Buscando oportunidades 
 
-### En 30 segundos
+### 
 
-Desarrollador frontend que entregó una **SPA de fintech** con React 19, integración real con **Laravel Sanctum** (CSRF + cookies), módulos CRUD completos, simulación financiera con debounce y UI production-ready con Tailwind v4.
+Desarrollador fullstack que entregó una **SPA de fintech** con React 19, integración real con **Laravel Sanctum** (CSRF + cookies), módulos CRUD completos, simulación financiera con debounce y UI production-ready con Tailwind v4.
 
 ### Decisiones de arquitectura destacadas
 
@@ -132,33 +88,10 @@ Desarrollador frontend que entregó una **SPA de fintech** con React 19, integra
 - Validación de formularios y manejo de errores HTTP
 - Organización modular por dominio (`pages/`, `components/`, `api/`)
 
-### Prácticas modernas detectadas
 
-- ES Modules (`"type": "module"`)
-- React Strict Mode en `main.jsx`
-- Interceptores Axios para sesión expirada
-- `withXSRFToken` nativo de Axios para CSRF
-- Debounce en efectos para simulación
-- Accesibilidad parcial (`aria-label` en controles clave)
-- Animaciones Lottie en login (`@lottiefiles/dotlottie-react`)
+## Tecnologías utilizadas
 
-### Áreas de mejora (honestas, basadas en código)
-
-| Observación | Impacto |
-|-------------|---------|
-| Rutas del `Navbar` no coinciden con `App.jsx` (`/`, `/creditos`, `/Pagos` vs rutas reales) | Enlaces rotos en menú |
-| Doble configuración Axios en `main.jsx` y `api/axios.js` | Confusión en desarrollo |
-| `ProtectedRoute` solo valida `localStorage`, no la sesión real | Bypass superficial del guard |
-| Login acepta `status === 400` como éxito | Posible falso positivo de autenticación |
-| Sin tests automatizados | Riesgo en regresiones |
-| Sin `.env.example`, Docker ni CI/CD | Onboarding y despliegue menos reproducibles |
-| Menús Reportes/Auditoría con `to: "#"` | Funcionalidad placeholder |
-
----
-
-## 🛠 Tecnologías utilizadas
-
-### Frontend (este repositorio)
+### Frontend
 
 | Categoría | Tecnología | Versión |
 |-----------|------------|---------|
@@ -175,29 +108,8 @@ Desarrollador frontend que entregó una **SPA de fintech** con React 19, integra
 | Lint | ESLint 9 (flat config) | ^9.39.1 |
 | Lenguaje | JavaScript (JSX) | — |
 
-> **Nota:** Existen `@types/react` como devDependency, pero **no hay TypeScript** en el código de aplicación (`src/`).
 
-### Backend (externo — inferido por el frontend)
-
-| Categoría | Tecnología |
-|-----------|------------|
-| Framework API | Laravel (convención de rutas `/api/*`, `/sanctum/*`) |
-| Autenticación | Laravel Sanctum (cookies + CSRF) |
-| Puerto desarrollo | `8000` (proxy Vite) |
-| Hosting detectado | Railway (`VITE_API_URL` en `.env`) |
-
-### Infraestructura y herramientas
-
-| Elemento | Estado en repo |
-|----------|----------------|
-| Docker / docker-compose | ❌ No presente |
-| CI/CD (GitHub Actions, etc.) | ❌ No presente |
-| Composer / PHP | ❌ No aplica (solo frontend) |
-| Webpack | ❌ No (usa Vite) |
-
----
-
-## 🏗 Arquitectura del proyecto
+## Arquitectura del proyecto
 
 ### Patrón general
 
@@ -226,7 +138,7 @@ Desarrollador frontend que entregó una **SPA de fintech** con React 19, integra
 └─────────────────────────────────────────────────────────────┘
 ```
 
-### Patrones de diseño detectados
+### Patrones de diseño
 
 | Patrón | Implementación |
 |--------|----------------|
