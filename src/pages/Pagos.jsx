@@ -11,33 +11,34 @@ const fmt = (n) => Number(n).toLocaleString("es-CO");
 
 const ESTADO_STYLE = {
   pendiente: { bg: "#fff7ed", color: "#f59e0b", label: "Pendiente" },
-  pagado:    { bg: "#f0fdf4", color: "#10b981", label: "Pagado"    },
-  vencido:   { bg: "#fff1f2", color: "#ef4444", label: "Vencido"   },
+  pagada: { bg: "#f0fdf4", color: "#10b981", label: "Pagada" },
+  vencido: { bg: "#fff1f2", color: "#ef4444", label: "Vencido" },
+  parcial: { bg: "#eff6ff", color: "#3b82f6", label: "Parcial" }
 };
 
 const METODOS = [
-  { value: "efectivo",      label: "Efectivo",      icon: FaMoneyBillWave },
-  { value: "transferencia", label: "Transferencia", icon: FaUniversity    },
-  { value: "consignacion",  label: "Consignación",  icon: FaHandHoldingUsd },
+  { value: "efectivo", label: "Efectivo", icon: FaMoneyBillWave },
+  { value: "transferencia", label: "Transferencia", icon: FaUniversity },
+  { value: "consignacion", label: "Consignación", icon: FaHandHoldingUsd },
 ];
 
 const TIPO_LABEL = {
-  cuota_fija:     "Cuotas Fijas",
-  abono_capital:  "Abono Capital",
+  cuota_fija: "Cuotas Fijas",
+  abono_capital: "Abono Capital",
   solo_intereses: "Solo Intereses",
   interes_simple: "Interés Simple",
 };
 
 export default function Pagos() {
-  const [deudor,           setDeudor]           = useState(null);
-  const [documento,        setDocumento]        = useState("");
-  const [creditos,         setCreditos]         = useState([]);
-  const [buscado,          setBuscado]          = useState(false);
-  const [buscando,         setBuscando]         = useState(false);
-  const [loading,          setLoading]          = useState(false);
-  const [modalAbierto,     setModalAbierto]     = useState(false);
-  const [cuotaSeleccionada,setCuotaSeleccionada]= useState(null);
-  const [creditoModal,     setCreditoModal]     = useState(null);
+  const [deudor, setDeudor] = useState(null);
+  const [documento, setDocumento] = useState("");
+  const [creditos, setCreditos] = useState([]);
+  const [buscado, setBuscado] = useState(false);
+  const [buscando, setBuscando] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [modalAbierto, setModalAbierto] = useState(false);
+  const [cuotaSeleccionada, setCuotaSeleccionada] = useState(null);
+  const [creditoModal, setCreditoModal] = useState(null);
   const [formPago, setFormPago] = useState({
     monto: "", metodo_pago: "efectivo", referencia: "", notas: ""
   });
@@ -69,11 +70,11 @@ export default function Pagos() {
     setLoading(true);
     try {
       const datos = {
-        cuota_id:    cuotaSeleccionada.id,
-        monto:       formPago.monto,
+        cuota_id: cuotaSeleccionada.id,
+        monto: formPago.monto,
         metodo_pago: formPago.metodo_pago,
-        referencia:  formPago.referencia,
-        notas:       formPago.notas,
+        referencia: formPago.referencia,
+        notas: formPago.notas,
       };
       const respuesta = await clienteAxios.post("/api/pagos", datos);
       alert("¡Éxito! " + respuesta.data.mensaje);
@@ -344,7 +345,7 @@ export default function Pagos() {
 
       {/* ── PAGE HEADER ── */}
       <div className="pg-page-header">
-        <div className="relative z-10" style={{ maxWidth:960, margin:"0 auto" }}>
+        <div className="relative z-10" style={{ maxWidth: 960, margin: "0 auto" }}>
           <p className="pg-title text-blue-200 text-xs font-semibold uppercase tracking-widest mb-1">
             Módulo de pagos
           </p>
@@ -361,7 +362,7 @@ export default function Pagos() {
 
         {/* ── BUSCADOR ── */}
         <div className="pg-search-bar">
-          <FaSearch style={{ color:"#94a3b8", fontSize:14, flexShrink:0 }}/>
+          <FaSearch style={{ color: "#94a3b8", fontSize: 14, flexShrink: 0 }} />
           <input
             className="pg-search-input"
             type="text"
@@ -372,8 +373,8 @@ export default function Pagos() {
           />
           <button className="pg-search-btn" onClick={handleBuscar} disabled={buscando}>
             {buscando
-              ? <div className="pg-spinner" style={{ borderColor:"rgba(255,255,255,0.3)", borderTopColor:"#fff" }}/>
-              : <><FaSearch size={11}/> Buscar</>
+              ? <div className="pg-spinner" style={{ borderColor: "rgba(255,255,255,0.3)", borderTopColor: "#fff" }} />
+              : <><FaSearch size={11} /> Buscar</>
             }
           </button>
         </div>
@@ -383,19 +384,19 @@ export default function Pagos() {
           <div className="pg-deudor">
             <div className="pg-avatar">{initials(deudor.nombre)}</div>
             <div className="flex-1 min-w-0">
-              <p style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.1em",color:"#60a5fa",marginBottom:2 }}>
+              <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.1em", color: "#60a5fa", marginBottom: 2 }}>
                 Cliente encontrado
               </p>
               <p className="pg-title font-bold text-slate-800 text-base truncate">{deudor.nombre}</p>
               <div className="flex items-center gap-2 mt-0.5">
-                <FaIdCard size={10} color="#94a3b8"/>
-                <p style={{ fontSize:12, color:"#64748b" }}>{deudor.numero_documento}</p>
+                <FaIdCard size={10} color="#94a3b8" />
+                <p style={{ fontSize: 12, color: "#64748b" }}>{deudor.numero_documento}</p>
               </div>
             </div>
             <div style={{
-              padding:"5px 14px",borderRadius:50,
-              background:"linear-gradient(135deg,#059669,#047857)",
-              color:"#fff",fontSize:11,fontWeight:700,
+              padding: "5px 14px", borderRadius: 50,
+              background: "linear-gradient(135deg,#059669,#047857)",
+              color: "#fff", fontSize: 11, fontWeight: 700,
             }}>
               {creditos.length} crédito{creditos.length !== 1 ? "s" : ""}
             </div>
@@ -404,15 +405,15 @@ export default function Pagos() {
 
         {/* ── SIN RESULTADOS ── */}
         {buscado && creditos.length === 0 && (
-          <div className="pg-card" style={{ padding:"36px 20px", textAlign:"center" }}>
+          <div className="pg-card" style={{ padding: "36px 20px", textAlign: "center" }}>
             <div style={{
-              width:56,height:56,borderRadius:16,margin:"0 auto 12px",
-              background:"#fff7ed",display:"flex",alignItems:"center",justifyContent:"center",
+              width: 56, height: 56, borderRadius: 16, margin: "0 auto 12px",
+              background: "#fff7ed", display: "flex", alignItems: "center", justifyContent: "center",
             }}>
-              <FaExclamationTriangle size={22} color="#f59e0b"/>
+              <FaExclamationTriangle size={22} color="#f59e0b" />
             </div>
             <p className="pg-title font-bold text-slate-500 text-base">Sin cuotas pendientes</p>
-            <p style={{ fontSize:13, color:"#94a3b8", marginTop:4 }}>
+            <p style={{ fontSize: 13, color: "#94a3b8", marginTop: 4 }}>
               No se encontraron cuotas pendientes para el documento <strong>{documento}</strong>.
             </p>
           </div>
@@ -420,17 +421,17 @@ export default function Pagos() {
 
         {/* ── CRÉDITOS ── */}
         {creditos.map((credito) => (
-          <div key={credito.id} className="pg-card" style={{ marginBottom:20 }}>
+          <div key={credito.id} className="pg-card" style={{ marginBottom: 20 }}>
 
             {/* Header crédito */}
             <div className="pg-credito-header">
               <div style={{
-                width:36,height:36,borderRadius:10,
-                background:"rgba(255,255,255,0.15)",
-                display:"flex",alignItems:"center",justifyContent:"center",
-                flexShrink:0,
+                width: 36, height: 36, borderRadius: 10,
+                background: "rgba(255,255,255,0.15)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                flexShrink: 0,
               }}>
-                <FaCreditCard color="#fff" size={15}/>
+                <FaCreditCard color="#fff" size={15} />
               </div>
 
               <div className="pg-credito-stat">
@@ -470,19 +471,33 @@ export default function Pagos() {
                 return (
                   <div key={c.id} className="pg-cuota-row">
                     <span className="pg-num-badge">{c.numero_cuota}</span>
-                    <span style={{ fontWeight:700, color:"#1e293b" }}>${fmt(c.monto_cuota)}</span>
-                    <span style={{ color:"#475569" }}>${fmt(c.capital)}</span>
-                    <span style={{ color:"#ef4444" }}>${fmt(c.interes)}</span>
-                    <span style={{ color:"#64748b" }}>${fmt(c.saldo_remanente)}</span>
-                    <div style={{ display:"flex",alignItems:"center",gap:5,color:"#64748b",fontSize:"0.78rem" }}>
-                      <FaCalendarAlt size={9} color="#94a3b8"/>
+                    <span style={{ fontWeight: 700, color: "#1e293b" }}>${fmt(c.monto_cuota)}</span>
+                    <span style={{ color: "#475569" }}>${fmt(c.capital)}</span>
+                    <span style={{ color: "#ef4444" }}>${fmt(c.interes)}</span>
+                    <span style={{ color: "#64748b" }}>${fmt(c.saldo_remanente)}</span>
+                    <div style={{ display: "flex", alignItems: "center", gap: 5, color: "#64748b", fontSize: "0.78rem" }}>
+                      <FaCalendarAlt size={9} color="#94a3b8" />
                       {c.fecha_vencimiento}
                     </div>
-                    <span className="pg-badge" style={{ background:est.bg, color:est.color }}>
+                    <span className="pg-badge" style={{ background: est.bg, color: est.color }}>
                       {est.label}
                     </span>
-                    <button className="pg-pay-btn" onClick={() => abrirModal(c, credito)}>
-                      <FaCheckCircle size={10}/> Pagar
+                    <button className="pg-pay-btn" disable={c.estado === 'pagada'}
+                      onClick={() => c.estado !== 'pagada' && abrirModal(c, credito)}
+                      style={{
+                        background: c.estado === 'pagada'
+                          ? "linear-gradient(135deg,#d1fae5,#a7f3d0)"  // verde claro — pagada
+                          : "linear-gradient(135deg,#059669,#047857)",
+                        color: c.estado === 'pagada' ? "#059669" : "#fff",
+                        cursor: c.estado === 'pagada' ? "not-allowed" : "pointer",
+                        boxShadow: c.estado === 'pagada' ? "none" : "0 3px 10px rgba(5,150,105,0.3)",
+                        opacity: c.estado === 'pagada' ? 0.8 : 1,
+                      }}
+                    >
+                      {c.estado === 'pagada'
+                        ? <><FaCheckCircle size={10} /> Pagada</>
+                        : <><FaCheckCircle size={10} /> Pagar</>
+                      }
                     </button>
                   </div>
                 );
@@ -495,158 +510,160 @@ export default function Pagos() {
       {/* ══════════════════════════════════════════════════════════
           MODAL DE PAGO
       ══════════════════════════════════════════════════════════ */}
-      {modalAbierto && (
-        <div className="pg-modal-overlay" onClick={(e) => e.target === e.currentTarget && setModalAbierto(false)}>
-          <div className="pg-modal pg-root">
+      {
+        modalAbierto && (
+          <div className="pg-modal-overlay" onClick={(e) => e.target === e.currentTarget && setModalAbierto(false)}>
+            <div className="pg-modal pg-root">
 
-            {/* Header */}
-            <div className="pg-modal-header">
-              <div>
-                <p style={{ fontSize:10,fontWeight:700,textTransform:"uppercase",letterSpacing:"0.12em",color:"rgba(255,255,255,0.55)",marginBottom:2 }}>
-                  Registrar pago
-                </p>
-                <p className="pg-title text-white font-bold text-base">
-                  Cuota #{cuotaSeleccionada?.numero_cuota}
-                  {creditoModal && (
-                    <span style={{ fontWeight:400, fontSize:12, opacity:0.7, marginLeft:8 }}>
-                      — Crédito #{creditoModal.id}
-                    </span>
-                  )}
-                </p>
-              </div>
-              <button
-                onClick={() => setModalAbierto(false)}
-                style={{
-                  width:32,height:32,borderRadius:9,
-                  background:"rgba(255,255,255,0.15)",border:"none",
-                  color:"#fff",cursor:"pointer",display:"flex",
-                  alignItems:"center",justifyContent:"center",
-                }}
-              >
-                <FaTimes size={13}/>
-              </button>
-            </div>
-
-            {/* Body */}
-            <div style={{ padding:"22px 22px 6px" }}>
-
-              {/* Info cuota */}
-              <div style={{
-                background:"linear-gradient(135deg,#f0fdf4,#ecfdf5)",
-                border:"1.5px solid #bbf7d0",borderRadius:14,
-                padding:"12px 16px",marginBottom:18,
-                display:"flex",alignItems:"center",gap:10,
-              }}>
-                <div style={{
-                  width:36,height:36,borderRadius:10,
-                  background:"linear-gradient(135deg,#059669,#047857)",
-                  display:"flex",alignItems:"center",justifyContent:"center",flexShrink:0,
-                }}>
-                  <FaMoneyBillWave color="#fff" size={14}/>
-                </div>
+              {/* Header */}
+              <div className="pg-modal-header">
                 <div>
-                  <p style={{ fontSize:10,fontWeight:700,color:"#6ee7b7",textTransform:"uppercase",letterSpacing:"0.08em" }}>
-                    Monto sugerido
+                  <p style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.12em", color: "rgba(255,255,255,0.55)", marginBottom: 2 }}>
+                    Registrar pago
                   </p>
-                  <p className="pg-title font-bold text-emerald-700 text-xl">
-                    ${fmt(cuotaSeleccionada?.monto_cuota)}
+                  <p className="pg-title text-white font-bold text-base">
+                    Cuota #{cuotaSeleccionada?.numero_cuota}
+                    {creditoModal && (
+                      <span style={{ fontWeight: 400, fontSize: 12, opacity: 0.7, marginLeft: 8 }}>
+                        — Crédito #{creditoModal.id}
+                      </span>
+                    )}
                   </p>
                 </div>
+                <button
+                  onClick={() => setModalAbierto(false)}
+                  style={{
+                    width: 32, height: 32, borderRadius: 9,
+                    background: "rgba(255,255,255,0.15)", border: "none",
+                    color: "#fff", cursor: "pointer", display: "flex",
+                    alignItems: "center", justifyContent: "center",
+                  }}
+                >
+                  <FaTimes size={13} />
+                </button>
               </div>
 
-              {/* Monto */}
-              <div style={{ marginBottom:14 }}>
-                <p className="pg-m-label">Monto a pagar</p>
-                <input
-                  type="number" className="pg-m-input"
-                  style={{ fontWeight:700, fontSize:"1rem", color:"#1d4ed8" }}
-                  value={formPago.monto}
-                  onChange={(e) => setFormPago({ ...formPago, monto: e.target.value })}
-                />
-              </div>
+              {/* Body */}
+              <div style={{ padding: "22px 22px 6px" }}>
 
-              {/* Método pills */}
-              <div style={{ marginBottom:14 }}>
-                <p className="pg-m-label">Método de pago</p>
-                <div className="pg-method-pills">
-                  {METODOS.map((m) => {
-                    const Icon = m.icon;
-                    const active = formPago.metodo_pago === m.value;
-                    return (
-                      <button
-                        key={m.value} type="button"
-                        className={`pg-method-pill ${active ? "active" : ""}`}
-                        onClick={() => setFormPago({
-                          ...formPago,
-                          metodo_pago: m.value,
-                          referencia: m.value === "efectivo" ? "" : formPago.referencia
-                        })}
-                      >
-                        <Icon size={16} color={active ? "#3b82f6" : "#94a3b8"}/>
-                        {m.label}
-                      </button>
-                    );
-                  })}
+                {/* Info cuota */}
+                <div style={{
+                  background: "linear-gradient(135deg,#f0fdf4,#ecfdf5)",
+                  border: "1.5px solid #bbf7d0", borderRadius: 14,
+                  padding: "12px 16px", marginBottom: 18,
+                  display: "flex", alignItems: "center", gap: 10,
+                }}>
+                  <div style={{
+                    width: 36, height: 36, borderRadius: 10,
+                    background: "linear-gradient(135deg,#059669,#047857)",
+                    display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0,
+                  }}>
+                    <FaMoneyBillWave color="#fff" size={14} />
+                  </div>
+                  <div>
+                    <p style={{ fontSize: 10, fontWeight: 700, color: "#6ee7b7", textTransform: "uppercase", letterSpacing: "0.08em" }}>
+                      Monto sugerido
+                    </p>
+                    <p className="pg-title font-bold text-emerald-700 text-xl">
+                      ${fmt(cuotaSeleccionada?.monto_cuota)}
+                    </p>
+                  </div>
                 </div>
-              </div>
 
-              {/* Referencia condicional */}
-              {formPago.metodo_pago !== "efectivo" && (
-                <div style={{ marginBottom:14 }}>
-                  <p className="pg-m-label">
-                    Referencia <span style={{ color:"#ef4444" }}>*</span>
-                  </p>
+                {/* Monto */}
+                <div style={{ marginBottom: 14 }}>
+                  <p className="pg-m-label">Monto a pagar</p>
                   <input
-                    type="text" className="pg-m-input"
-                    placeholder="N° de operación bancaria"
-                    value={formPago.referencia}
-                    onChange={(e) => setFormPago({ ...formPago, referencia: e.target.value })}
+                    type="number" className="pg-m-input"
+                    style={{ fontWeight: 700, fontSize: "1rem", color: "#1d4ed8" }}
+                    value={formPago.monto}
+                    onChange={(e) => setFormPago({ ...formPago, monto: e.target.value })}
                   />
                 </div>
-              )}
 
-              {/* Notas */}
-              <div style={{ marginBottom:20 }}>
-                <p className="pg-m-label">Notas (opcional)</p>
-                <textarea
-                  className="pg-m-input" rows={2}
-                  style={{ resize:"none", paddingTop:10, paddingBottom:10 }}
-                  value={formPago.notas}
-                  onChange={(e) => setFormPago({ ...formPago, notas: e.target.value })}
-                />
+                {/* Método pills */}
+                <div style={{ marginBottom: 14 }}>
+                  <p className="pg-m-label">Método de pago</p>
+                  <div className="pg-method-pills">
+                    {METODOS.map((m) => {
+                      const Icon = m.icon;
+                      const active = formPago.metodo_pago === m.value;
+                      return (
+                        <button
+                          key={m.value} type="button"
+                          className={`pg-method-pill ${active ? "active" : ""}`}
+                          onClick={() => setFormPago({
+                            ...formPago,
+                            metodo_pago: m.value,
+                            referencia: m.value === "efectivo" ? "" : formPago.referencia
+                          })}
+                        >
+                          <Icon size={16} color={active ? "#3b82f6" : "#94a3b8"} />
+                          {m.label}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                {/* Referencia condicional */}
+                {formPago.metodo_pago !== "efectivo" && (
+                  <div style={{ marginBottom: 14 }}>
+                    <p className="pg-m-label">
+                      Referencia <span style={{ color: "#ef4444" }}>*</span>
+                    </p>
+                    <input
+                      type="text" className="pg-m-input"
+                      placeholder="N° de operación bancaria"
+                      value={formPago.referencia}
+                      onChange={(e) => setFormPago({ ...formPago, referencia: e.target.value })}
+                    />
+                  </div>
+                )}
+
+                {/* Notas */}
+                <div style={{ marginBottom: 20 }}>
+                  <p className="pg-m-label">Notas (opcional)</p>
+                  <textarea
+                    className="pg-m-input" rows={2}
+                    style={{ resize: "none", paddingTop: 10, paddingBottom: 10 }}
+                    value={formPago.notas}
+                    onChange={(e) => setFormPago({ ...formPago, notas: e.target.value })}
+                  />
+                </div>
+              </div>
+
+              {/* Footer */}
+              <div style={{ padding: "0 22px 22px", display: "flex", gap: 10 }}>
+                <button
+                  className="pg-modal-btn"
+                  style={{ background: "#f1f5f9", color: "#64748b", flex: "0 0 auto", padding: "12px 18px" }}
+                  onClick={() => setModalAbierto(false)}
+                >
+                  Cancelar
+                </button>
+                <button
+                  className="pg-modal-btn"
+                  disabled={!puedeConfirmar || loading}
+                  style={{
+                    background: puedeConfirmar
+                      ? "linear-gradient(135deg,#059669,#047857)"
+                      : "#e2e8f0",
+                    color: puedeConfirmar ? "#fff" : "#94a3b8",
+                    boxShadow: puedeConfirmar ? "0 6px 18px rgba(5,150,105,0.35)" : "none",
+                  }}
+                  onClick={registrarPago}
+                >
+                  {loading
+                    ? <><div className="pg-spinner" /> Procesando...</>
+                    : <><FaCheckCircle size={13} /> Confirmar Pago</>
+                  }
+                </button>
               </div>
             </div>
-
-            {/* Footer */}
-            <div style={{ padding:"0 22px 22px", display:"flex", gap:10 }}>
-              <button
-                className="pg-modal-btn"
-                style={{ background:"#f1f5f9", color:"#64748b", flex:"0 0 auto", padding:"12px 18px" }}
-                onClick={() => setModalAbierto(false)}
-              >
-                Cancelar
-              </button>
-              <button
-                className="pg-modal-btn"
-                disabled={!puedeConfirmar || loading}
-                style={{
-                  background: puedeConfirmar
-                    ? "linear-gradient(135deg,#059669,#047857)"
-                    : "#e2e8f0",
-                  color: puedeConfirmar ? "#fff" : "#94a3b8",
-                  boxShadow: puedeConfirmar ? "0 6px 18px rgba(5,150,105,0.35)" : "none",
-                }}
-                onClick={registrarPago}
-              >
-                {loading
-                  ? <><div className="pg-spinner"/> Procesando...</>
-                  : <><FaCheckCircle size={13}/> Confirmar Pago</>
-                }
-              </button>
-            </div>
           </div>
-        </div>
-      )}
-    </div>
+        )
+      }
+    </div >
   );
 }
