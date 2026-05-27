@@ -91,7 +91,7 @@ export default function Pagos() {
   const abrirModal = (cuota, credito) => {
     setCuotaSeleccionada(cuota);
     setCreditoModal(credito);
-    setFormPago({ monto: cuota.monto_cuota, metodo_pago: "efectivo", referencia: "", notas: "" });
+    setFormPago({ monto: cuota.monto_cuota - (cuota.total_pagado ?? 0), metodo_pago: "efectivo", referencia: "", notas: "" });
     setModalAbierto(true);
   };
 
@@ -100,6 +100,9 @@ export default function Pagos() {
   /* ── Initials avatar ────────────────────────────────────────── */
   const initials = (name = "") =>
     name.split(" ").slice(0, 2).map((w) => w[0]).join("").toUpperCase() || "?";
+
+ 
+
 
   return (
     <div className="pg-root min-h-screen" style={{ background: "#f0f4ff" }}>
@@ -211,7 +214,7 @@ export default function Pagos() {
         /* Cuota fila */
         .pg-cuota-row {
           display:grid;
-          grid-template-columns: 44px 1fr 1fr 1fr 1fr 90px 80px 110px;
+          grid-template-columns: 44px 1fr 1fr 1fr 1fr 1fr 90px 80px 110px;
           align-items:center; gap:6px;
           padding:11px 16px;
           border-bottom:1px solid #f1f5f9;
@@ -225,7 +228,7 @@ export default function Pagos() {
           font-size:9px;font-weight:700;text-transform:uppercase;
           letter-spacing:0.08em;color:#94a3b8;padding:10px 16px 8px;
           display:grid;
-          grid-template-columns: 44px 1fr 1fr 1fr 1fr 90px 80px 110px;
+          grid-template-columns: 44px 1fr 1fr 1fr 1fr 1fr 90px 80px 110px;
           gap:6px; border-bottom:2px solid #f1f5f9;
           background:#fafbff;
         }
@@ -461,13 +464,19 @@ export default function Pagos() {
                 <span>Capital</span>
                 <span>Interés</span>
                 <span>Saldo</span>
+                <span>Por Pagar</span>
                 <span>Vencimiento</span>
                 <span>Estado</span>
                 <span>Acción</span>
+
               </div>
 
-              {(credito.cuotas ?? []).map((c) => {
+              {(credito.cuotas ?? []).map((c, index) => {
                 const est = ESTADO_STYLE[c.estado] || ESTADO_STYLE.pendiente;
+                const cuotaAnterior = credito.cuotas[index - 1];
+                const bloqueadaPorOrden = index > 0 && cuotaAnterior?.estado !== 'pagada';
+                const bloqueada = c.estado === 'pagada' || bloqueadaPorOrden;
+
                 return (
                   <div key={c.id} className="pg-cuota-row">
                     <span className="pg-num-badge">{c.numero_cuota}</span>
@@ -475,6 +484,17 @@ export default function Pagos() {
                     <span style={{ color: "#475569" }}>${fmt(c.capital)}</span>
                     <span style={{ color: "#ef4444" }}>${fmt(c.interes)}</span>
                     <span style={{ color: "#64748b" }}>${fmt(c.saldo_remanente)}</span>
+                    <span style={{
+                      fontWeight: c.estado === 'parcial' ? 700 : 400,
+                      color: c.estado === 'parcial' ? "#ef4444" : c.estado === 'pagada' ? "#10b981" : "#64748b",
+                    }}>
+
+                      ${fmt(c.monto_cuota - (c.total_pagado ?? 0))}
+
+                    </span>
+
+
+
                     <div style={{ display: "flex", alignItems: "center", gap: 5, color: "#64748b", fontSize: "0.78rem" }}>
                       <FaCalendarAlt size={9} color="#94a3b8" />
                       {c.fecha_vencimiento}
@@ -482,21 +502,31 @@ export default function Pagos() {
                     <span className="pg-badge" style={{ background: est.bg, color: est.color }}>
                       {est.label}
                     </span>
-                    <button className="pg-pay-btn" disable={c.estado === 'pagada'}
-                      onClick={() => c.estado !== 'pagada' && abrirModal(c, credito)}
+
+
+                    <button className="pg-pay-btn" disabled={bloqueada}
+                      onClick={() => !bloqueada && abrirModal(c, credito)}
+                      title={bloqueadaPorOrden
+                        ? `Primero pague la cuota #${cuotaAnterior.numero_cuota}` :
+                        ""}
+
                       style={{
                         background: c.estado === 'pagada'
-                          ? "linear-gradient(135deg,#d1fae5,#a7f3d0)"  // verde claro — pagada
-                          : "linear-gradient(135deg,#059669,#047857)",
-                        color: c.estado === 'pagada' ? "#059669" : "#fff",
-                        cursor: c.estado === 'pagada' ? "not-allowed" : "pointer",
-                        boxShadow: c.estado === 'pagada' ? "none" : "0 3px 10px rgba(5,150,105,0.3)",
+                          ? "linear-gradient(135deg,#d1fae5,#a7f3d0)"
+                          : bloqueadaPorOrden
+                            ? "#f1f5f9"
+                            : "linear-gradient(135deg,#059669,#047857)",
+                        color: c.estado === 'pagada' ? "#059669"
+                          : bloqueadaPorOrden ? "#94a3b8" : "#fff",
+                        cursor: bloqueada ? "not-allowed" : "pointer",
+                        boxShadow: bloqueada ? "none" : "0 3px 10px rgba(5,150,105,0.3)",
                         opacity: c.estado === 'pagada' ? 0.8 : 1,
                       }}
                     >
                       {c.estado === 'pagada'
                         ? <><FaCheckCircle size={10} /> Pagada</>
-                        : <><FaCheckCircle size={10} /> Pagar</>
+                        : bloqueadaPorOrden ? <><FaTimes size={10} /> Bloqueada</>
+                          : <><FaCheckCircle size={10} /> Pagar</>
                       }
                     </button>
                   </div>
@@ -565,7 +595,7 @@ export default function Pagos() {
                       Monto sugerido
                     </p>
                     <p className="pg-title font-bold text-emerald-700 text-xl">
-                      ${fmt(cuotaSeleccionada?.monto_cuota)}
+                      ${fmt(cuotaSeleccionada?.monto_cuota - (cuotaSeleccionada?.total_pagado ?? 0))}
                     </p>
                   </div>
                 </div>
