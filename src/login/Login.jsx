@@ -7,23 +7,6 @@ import coinLottie from "../assets/img.lottie";
 import { FaEnvelope, FaLock, FaEye, FaEyeSlash } from "react-icons/fa";
 import { DotLottieReact } from '@lottiefiles/dotlottie-react';
 
-/* ─────────────────────────────────────────────
-   MEJORAS APLICADAS:
-   1. Navbar: logo alineado a la izquierda + texto centralizado + safe-area iOS
-   2. Card: max-w ajustado para no aplastar en pantallas medianas
-   3. Header card: padding más generoso, wave SVG corregida
-   4. Inputs: altura mínima 52px (touch-friendly), font-size 16px (evita zoom iOS)
-   5. Botón: min-height 52px, tap target correcto
-   6. Contraseña toggle: área de toque 44x44px
-   7. Error state: mejor contraste y accesibilidad (role="alert")
-   8. Focus ring: visible y accesible
-   9. Spacing móvil: px seguro con safe-area
-   10. Mascota: panel izquierdo con glassmorphism premium en desktop
-   11. Fondo: mesh gradient más sofisticado
-   12. Tipografía: jerarquía clara, tamaños relativos correctos
-   13. Loading state: texto descriptivo + spinner accesible
-   14. Footer: versión de app discreta
-───────────────────────────────────────────── */
 
 const Login = () => {
   const [formData, setFormData] = useState({ email: "", password: "" });
@@ -683,7 +666,7 @@ const Login = () => {
       <div className="coin-navbar" aria-hidden="true">
         <div className="coin-label">
           <span>💳</span>
-          <span>Gestión de crédito inteligente</span>
+          <span>Gestiona créditos y fiados de forma inteligente</span>
         </div>
 
         {/* Monedas (3 instancias para loop continuo) */}
@@ -733,25 +716,23 @@ const Login = () => {
 
             {/* Textos */}
             <p className="mascot-title fade-in delay-2">
-              Tu aliado financiero<br />siempre a tu lado
+              Más control para tus<br />créditos y fiados.
             </p>
-            <p className="mascot-subtitle fade-in delay-3">
-              Gestiona créditos con precisión,<br />eficiencia y total confianza.
-            </p>
+           
 
             {/* Stats decorativos */}
             <div className="mascot-stats fade-in delay-4">
               <div className="stat-chip">
                 <div className="stat-chip-value">99.9%</div>
-                <div className="stat-chip-label">Uptime</div>
+                <div className="stat-chip-label">Disponibilidad</div>
               </div>
               <div className="stat-chip">
                 <div className="stat-chip-value">256-bit</div>
-                <div className="stat-chip-label">Cifrado</div>
+                <div className="stat-chip-label">Cifrado ssl</div>
               </div>
               <div className="stat-chip">
                 <div className="stat-chip-value">24/7</div>
-                <div className="stat-chip-label">Soporte</div>
+                <div className="stat-chip-label">Monitoreo</div>
               </div>
             </div>
           </div>
@@ -774,9 +755,9 @@ const Login = () => {
                   }}
                 />
               </div>
-              <h1 className="card-title fade-in delay-2">Bienvenido de nuevo</h1>
+              <h1 className="card-title fade-in delay-2">Bienvenido otra vez</h1>
               <p className="card-subtitle fade-in delay-3">
-                Ingresa tus credenciales para continuar
+                Ingresa usuario y contraseña para continuar
               </p>
             </div>
 
@@ -861,7 +842,7 @@ const Login = () => {
                     onMouseEnter={e => e.target.style.color = "#1d4ed8"}
                     onMouseLeave={e => e.target.style.color = "#2563eb"}
                   >
-                    ¿Olvidaste tu clave?
+                    ¿Olvidaste tu contraseña?
                   </a>
                 </div>
                 <div className="field-row">
@@ -911,7 +892,7 @@ const Login = () => {
                       <span>Verificando...</span>
                     </>
                   ) : (
-                    "Iniciar Sesión"
+                    "Acceder"
                   )}
                 </button>
               </div>

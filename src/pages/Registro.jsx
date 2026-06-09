@@ -540,10 +540,10 @@ const Registro = () => {
               />
             </div>
             <h1 className="rg-brand" style={{ color: "#fff", fontSize: 22, fontWeight: 700, margin: 0 }}>
-              Crea tu cuenta
+              Registrarse
             </h1>
             <p style={{ color: "rgba(219,234,254,.90)", fontSize: 13.5, marginTop: 5 }}>
-              Completa los datos para registrarte
+              Completa los datos de registro
             </p>
           </div>
         </div>
@@ -566,13 +566,7 @@ const Registro = () => {
           className="rg-body"
           aria-label="Formulario de registro"
         >
-          {/* Pill indicador de contexto */}
-          <div style={{ display: "flex", justifyContent: "center", marginBottom: 16 }}>
-            <div className="rg-step-pill">
-              <span className="rg-step-dot" />
-              Datos personales · 1 de 1
-            </div>
-          </div>
+         
 
           {/* Grid de campos */}
           <div className="rg-fields-grid">
@@ -692,7 +686,7 @@ const Registro = () => {
                   <span>Creando cuenta...</span>
                 </>
               ) : (
-                "Registrarme"
+                "Crear cuenta"
               )}
             </button>
           </div>
@@ -704,7 +698,7 @@ const Registro = () => {
           <p className="rg-footer-text">
             ¿Ya tienes cuenta?{" "}
             <Link to="/login" className="rg-footer-link">
-              Inicia sesión
+              Acceder
             </Link>
           </p>
         </form>

@@ -3,16 +3,7 @@ import logoApp from "../assets/logo.png";
 import { FaFacebook, FaLinkedin, FaGithub } from "react-icons/fa";
 import useRandomPhrase from "../hooks/userRandomPhrase";
 
-/* ══════════════════════════════════════════════════════════════
-   FOOTER — KREDI
-   Mejoras aplicadas:
-   · safe-area-inset-bottom → no se corta en iPhone con home bar
-   · Social icons: 44×44px tap target + gap mayor en móvil
-   · Quote: barra izquierda solo en desktop, centrado limpio en móvil
-   · Links legales: min-height 44px (área táctil correcta)
-   · ft-tag sin línea decorativa en móvil (se ve suelta centrada)
-   · Consistencia max-width con el resto de la app (960-1100px)
-══════════════════════════════════════════════════════════════ */
+
 
 const Footer = () => {
   const frase = useRandomPhrase();
@@ -237,7 +228,7 @@ const Footer = () => {
           {/* COL 1 — Logo */}
           <div className="ft-logo-col">
             <img src={logoApp} alt="Logo KREDI" className="ft-logo" />
-            <span className="ft-logo-label">Sistema de crédito</span>
+            <span className="ft-logo-label">Sistema de crédito y fiados</span>
           </div>
 
           {/* COL 2 — Frase aleatoria */}
@@ -297,7 +288,7 @@ const Footer = () => {
             <span className="ft-dev">
               Desarrollado por{" "}
               <a href="https://www.wilolink.online" target="_blank" rel="noreferrer">
-                @wilo
+                @wiloLink
               </a>
             </span>
           </p>
