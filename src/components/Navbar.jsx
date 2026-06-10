@@ -12,8 +12,8 @@ const MENUS = [
   {
     id: "gestion", label: "Gestión", icon: "📋",
     items: [
-      { to: "/",         icon: "👤", label: "Clientes" },
-      { to: "/creditos", icon: "💳", label: "Créditos" },
+      { to: "/Deudores",         icon: "👤", label: "Clientes" },
+      { to: "/Deudores", icon: "💳", label: "Créditos" },
       { to: "/Pagos",    icon: "💸", label: "Pagos"    },
     ],
   },

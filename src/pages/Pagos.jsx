@@ -15,20 +15,20 @@ const fmt = (n) => Number(n).toLocaleString("es-CO");
 
 const ESTADO_STYLE = {
   pendiente: { bg: "#fff7ed", color: "#f59e0b", dot: "#f59e0b", label: "Pendiente" },
-  pagada:    { bg: "#f0fdf4", color: "#10b981", dot: "#10b981", label: "Pagada"    },
-  vencido:   { bg: "#fff1f2", color: "#ef4444", dot: "#ef4444", label: "Vencido"   },
-  parcial:   { bg: "#eff6ff", color: "#3b82f6", dot: "#3b82f6", label: "Parcial"   },
+  pagada: { bg: "#f0fdf4", color: "#10b981", dot: "#10b981", label: "Pagada" },
+  vencido: { bg: "#fff1f2", color: "#ef4444", dot: "#ef4444", label: "Vencido" },
+  parcial: { bg: "#eff6ff", color: "#3b82f6", dot: "#3b82f6", label: "Parcial" },
 };
 
 const METODOS = [
-  { value: "efectivo",      label: "Efectivo",      icon: FaMoneyBillWave },
-  { value: "transferencia", label: "Transferencia", icon: FaUniversity    },
-  { value: "consignacion",  label: "Consignación",  icon: FaHandHoldingUsd},
+  { value: "efectivo", label: "Efectivo", icon: FaMoneyBillWave },
+  { value: "transferencia", label: "Transferencia", icon: FaUniversity },
+  { value: "consignacion", label: "Consignación", icon: FaHandHoldingUsd },
 ];
 
 const TIPO_LABEL = {
-  cuota_fija:     "Cuotas Fijas",
-  abono_capital:  "Abono Capital",
+  cuota_fija: "Cuotas Fijas",
+  abono_capital: "Abono Capital",
   solo_intereses: "Solo Intereses",
   interes_simple: "Interés Simple",
 };
@@ -48,7 +48,7 @@ const Toast = ({ type, message, onClose }) => {
 
   const meta = {
     success: { bg: "#f0fdf4", border: "#bbf7d0", color: "#065f46", icon: "✓", iconBg: "#059669" },
-    error:   { bg: "#fff1f2", border: "#fecaca", color: "#991b1b", icon: "✕", iconBg: "#ef4444" },
+    error: { bg: "#fff1f2", border: "#fecaca", color: "#991b1b", icon: "✕", iconBg: "#ef4444" },
     warning: { bg: "#fffbeb", border: "#fde68a", color: "#92400e", icon: "!", iconBg: "#f59e0b" },
   }[type] || {};
 
@@ -87,23 +87,23 @@ const Toast = ({ type, message, onClose }) => {
    COMPONENTE PRINCIPAL
 ══════════════════════════════════════════════════════════════ */
 export default function Pagos() {
-  const [deudor,          setDeudor]          = useState(null);
-  const [documento,       setDocumento]       = useState("");
-  const [creditos,        setCreditos]        = useState([]);
-  const [buscado,         setBuscado]         = useState(false);
-  const [buscando,        setBuscando]        = useState(false);
-  const [loading,         setLoading]         = useState(false);
-  const [modalAbierto,    setModalAbierto]    = useState(false);
+  const [deudor, setDeudor] = useState(null);
+  const [documento, setDocumento] = useState("");
+  const [creditos, setCreditos] = useState([]);
+  const [buscado, setBuscado] = useState(false);
+  const [buscando, setBuscando] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [modalAbierto, setModalAbierto] = useState(false);
   const [cuotaSeleccionada, setCuotaSeleccionada] = useState(null);
-  const [creditoModal,    setCreditoModal]    = useState(null);
-  const [toast,           setToast]           = useState(null); // { type, message }
-  const [expandidos,      setExpandidos]      = useState({});   // creditoId -> bool (mobile accordion)
+  const [creditoModal, setCreditoModal] = useState(null);
+  const [toast, setToast] = useState(null); // { type, message }
+  const [expandidos, setExpandidos] = useState({});   // creditoId -> bool (mobile accordion)
   const [formPago, setFormPago] = useState({
     monto: "", metodo_pago: "efectivo", referencia: "", notas: "",
   });
 
-  const searchRef   = useRef(null);
-  const modalRef    = useRef(null);
+  const searchRef = useRef(null);
+  const modalRef = useRef(null);
   const firstInputRef = useRef(null);
 
   /* ── Auto-focus al abrir modal ── */
@@ -156,11 +156,11 @@ export default function Pagos() {
     setLoading(true);
     try {
       const datos = {
-        cuota_id:    cuotaSeleccionada.id,
-        monto:       formPago.monto,
+        cuota_id: cuotaSeleccionada.id,
+        monto: formPago.monto,
         metodo_pago: formPago.metodo_pago,
-        referencia:  formPago.referencia,
-        notas:       formPago.notas,
+        referencia: formPago.referencia,
+        notas: formPago.notas,
       };
       const respuesta = await clienteAxios.post("/api/pagos", datos);
       setModalAbierto(false);
@@ -172,6 +172,14 @@ export default function Pagos() {
     } finally {
       setLoading(false);
     }
+  };
+
+  const formatMontoPago = (valor) => {
+    if (!valor) return "";
+    return Number(valor).toLocaleString("es-CO", {
+      minimumFractionDigits: 2,
+      maximumFractionDigits: 2,
+    });
   };
 
   const abrirModal = (cuota, credito) => {
@@ -838,10 +846,10 @@ export default function Pagos() {
 
                     {(credito.cuotas ?? []).map((c, index) => {
                       const est = ESTADO_STYLE[c.estado] || ESTADO_STYLE.pendiente;
-                      const cuotaAnterior  = credito.cuotas[index - 1];
+                      const cuotaAnterior = credito.cuotas[index - 1];
                       const bloqueadaOrden = index > 0 && cuotaAnterior?.estado !== "pagada";
-                      const bloqueada      = c.estado === "pagada" || bloqueadaOrden;
-                      const porPagar       = c.monto_cuota - (c.total_pagado ?? 0);
+                      const bloqueada = c.estado === "pagada" || bloqueadaOrden;
+                      const porPagar = c.monto_cuota - (c.total_pagado ?? 0);
 
                       return (
                         <div key={c.id} className="pg-cuota-row">
@@ -877,7 +885,7 @@ export default function Pagos() {
                               background: c.estado === "pagada"
                                 ? "linear-gradient(135deg,#d1fae5,#a7f3d0)"
                                 : bloqueadaOrden ? "#f1f5f9"
-                                : "linear-gradient(135deg,#059669,#047857)",
+                                  : "linear-gradient(135deg,#059669,#047857)",
                               color: c.estado === "pagada" ? "#059669"
                                 : bloqueadaOrden ? "#94a3b8" : "#fff",
                               boxShadow: bloqueada ? "none" : "0 3px 10px rgba(5,150,105,.30)",
@@ -903,10 +911,10 @@ export default function Pagos() {
                   <div className="pg-table-mobile">
                     {(credito.cuotas ?? []).map((c, index) => {
                       const est = ESTADO_STYLE[c.estado] || ESTADO_STYLE.pendiente;
-                      const cuotaAnterior  = credito.cuotas[index - 1];
+                      const cuotaAnterior = credito.cuotas[index - 1];
                       const bloqueadaOrden = index > 0 && cuotaAnterior?.estado !== "pagada";
-                      const bloqueada      = c.estado === "pagada" || bloqueadaOrden;
-                      const porPagar       = c.monto_cuota - (c.total_pagado ?? 0);
+                      const bloqueada = c.estado === "pagada" || bloqueadaOrden;
+                      const porPagar = c.monto_cuota - (c.total_pagado ?? 0);
 
                       return (
                         <div key={c.id} className="pg-cuota-card">
@@ -1074,13 +1082,21 @@ export default function Pagos() {
                   id="modal-monto"
                   ref={firstInputRef}
                   type="number"
-                  inputMode="decimal"      /* teclado numérico en móvil */
+                  inputMode="decimal"
                   className="pg-m-input"
                   style={{ fontWeight: 700, color: "#1d4ed8" }}
                   value={formPago.monto}
-                  onChange={(e) => setFormPago({ ...formPago, monto: e.target.value })}
+                  onChange={(e) =>
+                    setFormPago({
+                      ...formPago,
+                      monto: e.target.value,
+                    })
+                  }
                   aria-label="Monto a pagar"
                 />
+                <p>
+                  ${fmt(formPago.monto || 0)}
+                </p>
               </div>
 
               {/* Método de pago */}
@@ -1088,7 +1104,7 @@ export default function Pagos() {
                 <label className="pg-m-label">Método de pago</label>
                 <div className="pg-method-pills" role="group" aria-label="Método de pago">
                   {METODOS.map((m) => {
-                    const Icon   = m.icon;
+                    const Icon = m.icon;
                     const active = formPago.metodo_pago === m.value;
                     return (
                       <button

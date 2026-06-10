@@ -12,24 +12,30 @@ import {
    HELPERS — sin cambios
 ───────────────────────────────────────────────────────────── */
 const fmt = (n) => Number(n).toLocaleString("es-CO");
+const formatMontoInput = (value) => {
+  const numero = String(value).replace(/\D/g, "");
+  if (!numero) return "";
+
+  return Number(numero).toLocaleString("es-CO");
+};
 
 const FRECUENCIAS = [
-  { value: "diario",    label: "Diario"    },
-  { value: "semanal",   label: "Semanal"   },
+  { value: "diario", label: "Diario" },
+  { value: "semanal", label: "Semanal" },
   { value: "quincenal", label: "Quincenal" },
-  { value: "mensual",   label: "Mensual"   },
+  { value: "mensual", label: "Mensual" },
 ];
 
 const TIPOS = [
-  { value: "cuota_fija",     label: "Cuotas Fijas"           },
-  { value: "abono_capital",  label: "Abono Fijo a Capital"    },
-  { value: "solo_intereses", label: "Solo Intereses (Final)"  },
-  { value: "interes_simple", label: "Interés Simple (Fijo)"   },
+  { value: "cuota_fija", label: "Cuotas Fijas" },
+  { value: "abono_capital", label: "Abono Fijo a Capital" },
+  { value: "solo_intereses", label: "Solo Intereses (Final)" },
+  { value: "interes_simple", label: "Interés Simple (Fijo)" },
 ];
 
 const EMPTY_FORM = (id = "") => ({
   deudor_id: id, monto: "", tasa_interes: "", numero_cuotas: "",
-  fecha_inicio: "", tipo_prestamo: "cuota_fija", frecuencia: "mensual",
+  fecha_inicio: new Date().toISOString().split("T")[0], tipo_prestamo: "cuota_fija", frecuencia: "mensual",
   observaciones: "",
 });
 
@@ -43,37 +49,37 @@ const Toast = ({ type, message, onClose }) => {
   }, [onClose]);
 
   const meta = {
-    success: { bg:"#f0fdf4", border:"#bbf7d0", left:"#10b981", color:"#065f46", icon:"✓", iconBg:"#059669" },
-    error:   { bg:"#fff1f2", border:"#fecaca", left:"#ef4444", color:"#991b1b", icon:"✕", iconBg:"#ef4444" },
+    success: { bg: "#f0fdf4", border: "#bbf7d0", left: "#10b981", color: "#065f46", icon: "✓", iconBg: "#059669" },
+    error: { bg: "#fff1f2", border: "#fecaca", left: "#ef4444", color: "#991b1b", icon: "✕", iconBg: "#ef4444" },
   }[type];
 
   return (
     <div style={{
-      position:"fixed",
-      bottom:"max(24px, env(safe-area-inset-bottom))",
-      left:"50%", transform:"translateX(-50%)",
-      width:"calc(100% - 32px)", maxWidth:420,
-      background:meta.bg, border:`1.5px solid ${meta.border}`,
-      borderLeft:`4px solid ${meta.left}`,
-      borderRadius:14, padding:"12px 14px",
-      display:"flex", alignItems:"center", gap:10,
-      boxShadow:"0 8px 32px rgba(0,0,0,.13)",
-      zIndex:9999,
-      animation:"crToastIn .32s cubic-bezier(.22,1,.36,1)",
+      position: "fixed",
+      bottom: "max(24px, env(safe-area-inset-bottom))",
+      left: "50%", transform: "translateX(-50%)",
+      width: "calc(100% - 32px)", maxWidth: 420,
+      background: meta.bg, border: `1.5px solid ${meta.border}`,
+      borderLeft: `4px solid ${meta.left}`,
+      borderRadius: 14, padding: "12px 14px",
+      display: "flex", alignItems: "center", gap: 10,
+      boxShadow: "0 8px 32px rgba(0,0,0,.13)",
+      zIndex: 9999,
+      animation: "crToastIn .32s cubic-bezier(.22,1,.36,1)",
     }}>
       <div style={{
-        width:30, height:30, borderRadius:9, flexShrink:0,
-        background:meta.iconBg,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        color:"#fff", fontWeight:800, fontSize:13,
+        width: 30, height: 30, borderRadius: 9, flexShrink: 0,
+        background: meta.iconBg,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        color: "#fff", fontWeight: 800, fontSize: 13,
       }}>{meta.icon}</div>
-      <p style={{ flex:1, fontSize:13.5, color:meta.color, fontWeight:500, lineHeight:1.4 }}>{message}</p>
+      <p style={{ flex: 1, fontSize: 13.5, color: meta.color, fontWeight: 500, lineHeight: 1.4 }}>{message}</p>
       <button onClick={onClose} style={{
-        width:26, height:26, border:"none", background:"transparent",
-        cursor:"pointer", color:meta.color, opacity:.55,
-        display:"flex", alignItems:"center", justifyContent:"center",
-        borderRadius:7, flexShrink:0,
-      }}><FaTimes size={10}/></button>
+        width: 26, height: 26, border: "none", background: "transparent",
+        cursor: "pointer", color: meta.color, opacity: .55,
+        display: "flex", alignItems: "center", justifyContent: "center",
+        borderRadius: 7, flexShrink: 0,
+      }}><FaTimes size={10} /></button>
     </div>
   );
 };
@@ -82,16 +88,16 @@ const Toast = ({ type, message, onClose }) => {
    COMPONENTE PRINCIPAL
 ══════════════════════════════════════════════════════════════ */
 export default function Credito() {
-  const { id }     = useParams();
-  const navigate   = useNavigate();
+  const { id } = useParams();
+  const navigate = useNavigate();
 
-  const [form,              setForm]              = useState(EMPTY_FORM(id));
-  const [deudor,            setDeudor]            = useState(null);
-  const [planProyectado,    setPlanProyectado]    = useState([]);
+  const [form, setForm] = useState(EMPTY_FORM(id));
+  const [deudor, setDeudor] = useState(null);
+  const [planProyectado, setPlanProyectado] = useState([]);
   const [loadingSimulation, setLoadingSimulation] = useState(false);
-  const [saving,            setSaving]            = useState(false);
-  const [toast,             setToast]             = useState(null);
-  const [simError,          setSimError]          = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [toast, setToast] = useState(null);
+  const [simError, setSimError] = useState(false);
 
   /* ── Cargar deudor ── */
   useEffect(() => {
@@ -136,28 +142,40 @@ export default function Credito() {
   }, [form]);
 
   /* ── Handlers ── */
-  const handleChange  = (e) => setForm({ ...form, [e.target.name]: e.target.value });
+  const handleChange = (e) => setForm({ ...form, [e.target.name]: e.target.value });
 
-  const handleSubmit  = async (e) => {
+  const handleMontoChange = (e) => {
+    const valorLimpio = e.target.value.replace(/\D/g, "");
+    setForm({
+      ...form,
+      monto: valorLimpio,
+    });
+  };
+
+
+  const handleSubmit = async (e) => {
     e.preventDefault();
     setSaving(true);
     try {
       await clienteAxios.post("/api/creditos", form);
-      setToast({ type:"success", message:"Crédito creado correctamente. Redirigiendo..." });
+      setToast({ type: "success", message: "Crédito creado correctamente. Redirigiendo..." });
       setTimeout(() => navigate("/deudores"), 1800);
       setForm(EMPTY_FORM(id));
       setPlanProyectado([]);
     } catch (error) {
-      setToast({ type:"error", message:"Error al crear el crédito. Verifica los datos." });
+      setToast({ type: "error", message: "Error al crear el crédito. Verifica los datos." });
     } finally {
       setSaving(false);
     }
   };
 
   /* ── Totales ── */
-  const totalCapital = planProyectado.reduce((s, c) => s + Number(c.capital),    0);
-  const totalInteres = planProyectado.reduce((s, c) => s + Number(c.interes),    0);
-  const totalPagar   = planProyectado.reduce((s, c) => s + Number(c.monto_cuota),0);
+  const totalCapital = planProyectado.reduce((s, c) => s + Number(c.capital), 0);
+  const totalInteres = planProyectado.reduce((s, c) => s + Number(c.interes), 0);
+  const totalPagar = planProyectado.reduce((s, c) => s + Number(c.monto_cuota), 0);
+
+
+  const fechaMinima = new Date().toISOString().split("T")[0];
 
   /* ── Initials del deudor ── */
   const initials = (name = "") =>
@@ -510,15 +528,15 @@ export default function Credito() {
             type="button"
             aria-label="Volver a clientes"
           >
-            <FaArrowLeft size={12}/> Volver
+            <FaArrowLeft size={12} /> Volver
           </button>
-          <p className="cr-brand" style={{ color:"rgba(147,197,253,.85)", fontSize:10, fontWeight:700, textTransform:"uppercase", letterSpacing:".12em", marginBottom:4 }}>
+          <p className="cr-brand" style={{ color: "rgba(147,197,253,.85)", fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".12em", marginBottom: 4 }}>
             Gestión de crédito
           </p>
-          <h1 className="cr-brand" style={{ color:"#fff", fontSize:"clamp(20px,5vw,28px)", fontWeight:700, margin:0 }}>
+          <h1 className="cr-brand" style={{ color: "#fff", fontSize: "clamp(20px,5vw,28px)", fontWeight: 700, margin: 0 }}>
             Nuevo Crédito
           </h1>
-          <p style={{ color:"rgba(191,219,254,.85)", fontSize:13, marginTop:5 }}>
+          <p style={{ color: "rgba(191,219,254,.85)", fontSize: 13, marginTop: 5 }}>
             Configura y simula el plan de pagos en tiempo real
           </p>
         </div>
@@ -533,20 +551,20 @@ export default function Credito() {
           <div className="cr-deudor-card" role="status">
             <div className="cr-deudor-avatar">
               {deudor.nombre
-                ? deudor.nombre.split(" ").slice(0,2).map(w => w[0]).join("").toUpperCase()
-                : <FaUserCircle size={20} color="#fff"/>
+                ? deudor.nombre.split(" ").slice(0, 2).map(w => w[0]).join("").toUpperCase()
+                : <FaUserCircle size={20} color="#fff" />
               }
             </div>
-            <div style={{ flex:1, minWidth:0 }}>
-              <p style={{ fontSize:9.5, fontWeight:700, textTransform:"uppercase", letterSpacing:".10em", color:"#60a5fa", marginBottom:2 }}>
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p style={{ fontSize: 9.5, fontWeight: 700, textTransform: "uppercase", letterSpacing: ".10em", color: "#60a5fa", marginBottom: 2 }}>
                 Cliente seleccionado
               </p>
-              <p className="cr-brand" style={{ fontWeight:700, color:"#1e293b", fontSize:15, whiteSpace:"nowrap", overflow:"hidden", textOverflow:"ellipsis" }}>
+              <p className="cr-brand" style={{ fontWeight: 700, color: "#1e293b", fontSize: 15, whiteSpace: "nowrap", overflow: "hidden", textOverflow: "ellipsis" }}>
                 {deudor.nombre}
               </p>
-              <div style={{ display:"flex", alignItems:"center", gap:5, marginTop:2 }}>
-                <FaIdCard size={10} color="#94a3b8"/>
-                <span style={{ fontSize:12, color:"#64748b" }}>{deudor.documento_numero}</span>
+              <div style={{ display: "flex", alignItems: "center", gap: 5, marginTop: 2 }}>
+                <FaIdCard size={10} color="#94a3b8" />
+                <span style={{ fontSize: 12, color: "#64748b" }}>{deudor.documento_numero}</span>
               </div>
             </div>
             <div className="cr-active-badge">Activo</div>
@@ -563,14 +581,14 @@ export default function Credito() {
           ───────────────────────────── */}
           <div className="cr-card">
             <div className="cr-card-header">
-              <div className="cr-card-icon" style={{ background:"linear-gradient(135deg,#3b82f6,#2563eb)" }}>
-                <FaDollarSign color="#fff" size={16}/>
+              <div className="cr-card-icon" style={{ background: "linear-gradient(135deg,#3b82f6,#2563eb)" }}>
+                <FaDollarSign color="#fff" size={16} />
               </div>
               <div>
-                <p className="cr-brand" style={{ fontWeight:700, color:"#1e293b", fontSize:14, margin:0 }}>
+                <p className="cr-brand" style={{ fontWeight: 700, color: "#1e293b", fontSize: 14, margin: 0 }}>
                   Parámetros del crédito
                 </p>
-                <p style={{ fontSize:12, color:"#94a3b8", marginTop:1 }}>
+                <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 1 }}>
                   Completa para simular automáticamente
                 </p>
               </div>
@@ -582,10 +600,10 @@ export default function Credito() {
               <div className="cr-field-group">
                 <label htmlFor="cr-monto" className="cr-label">Monto del préstamo</label>
                 <div className="cr-field">
-                  <FaDollarSign className="cr-field-icon"/>
+                  <FaDollarSign className="cr-field-icon" />
                   <input
-                    id="cr-monto" type="number" name="monto"
-                    value={form.monto} onChange={handleChange}
+                    id="cr-monto" type="text" name="monto"
+                    value={formatMontoInput(form.monto)} onChange={handleMontoChange}
                     required placeholder="Ej: 500000"
                     inputMode="decimal" autoComplete="off"
                     className="cr-input"
@@ -599,7 +617,7 @@ export default function Credito() {
                 <div className="cr-field-group">
                   <label htmlFor="cr-tasa" className="cr-label">% Interés por periodo</label>
                   <div className="cr-field">
-                    <FaPercent className="cr-field-icon" style={{ fontSize:11 }}/>
+                    <FaPercent className="cr-field-icon" style={{ fontSize: 11 }} />
                     <input
                       id="cr-tasa" type="number" name="tasa_interes"
                       value={form.tasa_interes} onChange={handleChange}
@@ -613,7 +631,7 @@ export default function Credito() {
                 <div className="cr-field-group">
                   <label htmlFor="cr-cuotas" className="cr-label">Cant. cuotas</label>
                   <div className="cr-field">
-                    <FaListOl className="cr-field-icon" style={{ fontSize:11 }}/>
+                    <FaListOl className="cr-field-icon" style={{ fontSize: 11 }} />
                     <input
                       id="cr-cuotas" type="number" name="numero_cuotas"
                       value={form.numero_cuotas} onChange={handleChange}
@@ -631,7 +649,7 @@ export default function Credito() {
                 <div className="cr-field-group">
                   <label htmlFor="cr-frecuencia" className="cr-label">Frecuencia de pago</label>
                   <div className="cr-field">
-                    <FaClock className="cr-field-icon" style={{ fontSize:11 }}/>
+                    <FaClock className="cr-field-icon" style={{ fontSize: 11 }} />
                     <select
                       id="cr-frecuencia" name="frecuencia"
                       value={form.frecuencia} onChange={handleChange}
@@ -639,13 +657,13 @@ export default function Credito() {
                     >
                       {FRECUENCIAS.map(f => <option key={f.value} value={f.value}>{f.label}</option>)}
                     </select>
-                    <FaChevronDown className="cr-select-arrow"/>
+                    <FaChevronDown className="cr-select-arrow" />
                   </div>
                 </div>
                 <div className="cr-field-group">
                   <label htmlFor="cr-tipo" className="cr-label">Método de pago</label>
                   <div className="cr-field">
-                    <FaRedo className="cr-field-icon" style={{ fontSize:11 }}/>
+                    <FaRedo className="cr-field-icon" style={{ fontSize: 11 }} />
                     <select
                       id="cr-tipo" name="tipo_prestamo"
                       value={form.tipo_prestamo} onChange={handleChange}
@@ -653,7 +671,7 @@ export default function Credito() {
                     >
                       {TIPOS.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                     </select>
-                    <FaChevronDown className="cr-select-arrow"/>
+                    <FaChevronDown className="cr-select-arrow" />
                   </div>
                 </div>
               </div>
@@ -662,10 +680,12 @@ export default function Credito() {
               <div className="cr-field-group">
                 <label htmlFor="cr-fecha" className="cr-label">Fecha del primer pago</label>
                 <div className="cr-field">
-                  <FaCalendarAlt className="cr-field-icon" style={{ fontSize:12 }}/>
+                  <FaCalendarAlt className="cr-field-icon" style={{ fontSize: 12 }} />
                   <input
                     id="cr-fecha" type="date" name="fecha_inicio"
                     value={form.fecha_inicio} onChange={handleChange}
+                    min={fechaMinima}
+                    onKeyDown={(e) => e.preventDefault()}
                     required className="cr-input"
                     aria-required="true"
                   />
@@ -676,7 +696,7 @@ export default function Credito() {
               <div className="cr-field-group">
                 <label htmlFor="cr-obs" className="cr-label">Observaciones</label>
                 <div className="cr-field">
-                  <FaInfoCircle className="cr-field-icon cr-textarea-icon"/>
+                  <FaInfoCircle className="cr-field-icon cr-textarea-icon" />
                   <textarea
                     id="cr-obs" name="observaciones"
                     value={form.observaciones} onChange={handleChange}
@@ -687,7 +707,7 @@ export default function Credito() {
                 </div>
               </div>
 
-              <div className="cr-divider" aria-hidden="true"/>
+              <div className="cr-divider" aria-hidden="true" />
 
               <button
                 type="submit"
@@ -696,13 +716,13 @@ export default function Credito() {
                 aria-busy={saving}
               >
                 {saving
-                  ? <><span className="cr-spinner"/><span>Guardando crédito...</span></>
-                  : <><FaSave size={14}/><span>Generar y Guardar Crédito</span></>
+                  ? <><span className="cr-spinner" /><span>Guardando crédito...</span></>
+                  : <><FaSave size={14} /><span>Generar y Guardar Crédito</span></>
                 }
               </button>
 
               {planProyectado.length === 0 && !saving && (
-                <p style={{ fontSize:11.5, color:"#94a3b8", textAlign:"center", marginTop:-6 }}>
+                <p style={{ fontSize: 11.5, color: "#94a3b8", textAlign: "center", marginTop: -6 }}>
                   Completa todos los campos para habilitar el guardado
                 </p>
               )}
@@ -712,53 +732,53 @@ export default function Credito() {
           {/* ─────────────────────────────
               SIMULACIÓN
           ───────────────────────────── */}
-          <div className="cr-card" style={{ minHeight:400 }}>
+          <div className="cr-card" style={{ minHeight: 400 }}>
             <div className="cr-card-header">
-              <div className="cr-card-icon" style={{ background:"linear-gradient(135deg,#059669,#047857)" }}>
-                <FaChartLine color="#fff" size={15}/>
+              <div className="cr-card-icon" style={{ background: "linear-gradient(135deg,#059669,#047857)" }}>
+                <FaChartLine color="#fff" size={15} />
               </div>
-              <div style={{ flex:1 }}>
-                <p className="cr-brand" style={{ fontWeight:700, color:"#1e293b", fontSize:14, margin:0 }}>
+              <div style={{ flex: 1 }}>
+                <p className="cr-brand" style={{ fontWeight: 700, color: "#1e293b", fontSize: 14, margin: 0 }}>
                   Simulación en tiempo real
                 </p>
-                <p style={{ fontSize:12, color:"#94a3b8", marginTop:1 }}>
+                <p style={{ fontSize: 12, color: "#94a3b8", marginTop: 1 }}>
                   Se actualiza automáticamente
                 </p>
               </div>
               {/* Loader en header */}
               {loadingSimulation && (
-                <div style={{ display:"flex", alignItems:"flex-end", gap:3, marginLeft:"auto", paddingBottom:2 }}>
-                  <div className="cr-dot"/>
-                  <div className="cr-dot"/>
-                  <div className="cr-dot"/>
+                <div style={{ display: "flex", alignItems: "flex-end", gap: 3, marginLeft: "auto", paddingBottom: 2 }}>
+                  <div className="cr-dot" />
+                  <div className="cr-dot" />
+                  <div className="cr-dot" />
                 </div>
               )}
             </div>
 
-            <div style={{ flex:1, display:"flex", flexDirection:"column" }}>
+            <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
 
               {/* ── CARGANDO ── */}
               {loadingSimulation && planProyectado.length === 0 && (
                 <div className="cr-sim-empty">
-                  <div style={{ display:"flex", gap:5 }}>
-                    <div className="cr-dot"/>
-                    <div className="cr-dot"/>
-                    <div className="cr-dot"/>
+                  <div style={{ display: "flex", gap: 5 }}>
+                    <div className="cr-dot" />
+                    <div className="cr-dot" />
+                    <div className="cr-dot" />
                   </div>
-                  <p style={{ color:"#94a3b8", fontSize:13, fontStyle:"italic" }}>Calculando cuotas...</p>
+                  <p style={{ color: "#94a3b8", fontSize: 13, fontStyle: "italic" }}>Calculando cuotas...</p>
                 </div>
               )}
 
               {/* ── ERROR DE SIMULACIÓN ── */}
               {simError && (
                 <div className="cr-sim-empty">
-                  <div className="cr-sim-empty-icon" style={{ borderColor:"#fecdd3", background:"#fff1f2" }}>
-                    <FaInfoCircle size={24} color="#f87171"/>
+                  <div className="cr-sim-empty-icon" style={{ borderColor: "#fecdd3", background: "#fff1f2" }}>
+                    <FaInfoCircle size={24} color="#f87171" />
                   </div>
-                  <p className="cr-brand" style={{ fontWeight:700, color:"#ef4444", fontSize:14 }}>
+                  <p className="cr-brand" style={{ fontWeight: 700, color: "#ef4444", fontSize: 14 }}>
                     Error en simulación
                   </p>
-                  <p style={{ fontSize:12.5, color:"#94a3b8", lineHeight:1.5 }}>
+                  <p style={{ fontSize: 12.5, color: "#94a3b8", lineHeight: 1.5 }}>
                     Verifica los parámetros ingresados.
                   </p>
                 </div>
@@ -768,43 +788,43 @@ export default function Credito() {
               {!loadingSimulation && !simError && planProyectado.length > 0 && (
                 <>
                   {/* Totales */}
-                  <div style={{ padding:"16px 22px 0" }}>
+                  <div style={{ padding: "16px 22px 0" }}>
                     <div className="cr-totals">
-                      <div className="cr-total-chip" style={{ background:"#eff6ff", border:"1.5px solid #bfdbfe" }}>
-                        <span className="cr-total-label" style={{ color:"#93c5fd" }}>Capital</span>
-                        <span className="cr-total-value" style={{ color:"#1d4ed8" }}>${fmt(totalCapital)}</span>
+                      <div className="cr-total-chip" style={{ background: "#eff6ff", border: "1.5px solid #bfdbfe" }}>
+                        <span className="cr-total-label" style={{ color: "#93c5fd" }}>Capital</span>
+                        <span className="cr-total-value" style={{ color: "#1d4ed8" }}>${fmt(totalCapital)}</span>
                       </div>
-                      <div className="cr-total-chip" style={{ background:"#fff1f2", border:"1.5px solid #fecdd3" }}>
-                        <span className="cr-total-label" style={{ color:"#fca5a5" }}>Intereses</span>
-                        <span className="cr-total-value" style={{ color:"#ef4444" }}>${fmt(totalInteres)}</span>
+                      <div className="cr-total-chip" style={{ background: "#fff1f2", border: "1.5px solid #fecdd3" }}>
+                        <span className="cr-total-label" style={{ color: "#fca5a5" }}>Intereses</span>
+                        <span className="cr-total-value" style={{ color: "#ef4444" }}>${fmt(totalInteres)}</span>
                       </div>
-                      <div className="cr-total-chip" style={{ background:"#f0fdf4", border:"1.5px solid #bbf7d0" }}>
-                        <span className="cr-total-label" style={{ color:"#86efac" }}>Total</span>
-                        <span className="cr-total-value" style={{ color:"#059669" }}>${fmt(totalPagar)}</span>
+                      <div className="cr-total-chip" style={{ background: "#f0fdf4", border: "1.5px solid #bbf7d0" }}>
+                        <span className="cr-total-label" style={{ color: "#86efac" }}>Total</span>
+                        <span className="cr-total-value" style={{ color: "#059669" }}>${fmt(totalPagar)}</span>
                       </div>
                     </div>
                   </div>
 
                   {/* TABLA DESKTOP */}
-                  <div className="cr-table-desktop cr-table-wrap" style={{ margin:"0 22px 22px" }}>
+                  <div className="cr-table-desktop cr-table-wrap" style={{ margin: "0 22px 22px" }}>
                     <table className="cr-sim-table">
                       <thead>
                         <tr>
-                          <th style={{ textAlign:"left" }}>#</th>
-                          <th style={{ textAlign:"left" }}>Fecha</th>
-                          <th style={{ textAlign:"right" }}>Capital</th>
-                          <th style={{ textAlign:"right" }}>Interés</th>
-                          <th style={{ textAlign:"right" }}>Total cuota</th>
+                          <th style={{ textAlign: "left" }}>#</th>
+                          <th style={{ textAlign: "left" }}>Fecha</th>
+                          <th style={{ textAlign: "right" }}>Capital</th>
+                          <th style={{ textAlign: "right" }}>Interés</th>
+                          <th style={{ textAlign: "right" }}>Total cuota</th>
                         </tr>
                       </thead>
                       <tbody>
                         {planProyectado.map((cuota, i) => (
                           <tr key={i}>
                             <td><span className="cr-num-badge">{cuota.numero_cuota}</span></td>
-                            <td style={{ fontSize:12, color:"#64748b" }}>{cuota.fecha_vencimiento}</td>
-                            <td style={{ textAlign:"right", color:"#475569", fontWeight:500 }}>${fmt(cuota.capital)}</td>
-                            <td style={{ textAlign:"right", color:"#ef4444", fontWeight:500 }}>${fmt(cuota.interes)}</td>
-                            <td style={{ textAlign:"right" }}>
+                            <td style={{ fontSize: 12, color: "#64748b" }}>{cuota.fecha_vencimiento}</td>
+                            <td style={{ textAlign: "right", color: "#475569", fontWeight: 500 }}>${fmt(cuota.capital)}</td>
+                            <td style={{ textAlign: "right", color: "#ef4444", fontWeight: 500 }}>${fmt(cuota.interes)}</td>
+                            <td style={{ textAlign: "right" }}>
                               <span className="cr-cuota-total-badge">${fmt(cuota.monto_cuota)}</span>
                             </td>
                           </tr>
@@ -819,7 +839,7 @@ export default function Credito() {
                       <div key={i} className="cr-cuota-card">
                         <div className="cr-cuota-card-hdr">
                           <span className="cr-num-badge">{cuota.numero_cuota}</span>
-                          <span style={{ fontSize:11.5, color:"#64748b", flex:1 }}>
+                          <span style={{ fontSize: 11.5, color: "#64748b", flex: 1 }}>
                             📅 {cuota.fecha_vencimiento}
                           </span>
                           <span className="cr-cuota-total-badge">${fmt(cuota.monto_cuota)}</span>
@@ -827,11 +847,11 @@ export default function Credito() {
                         <div className="cr-cuota-card-body">
                           <div>
                             <div className="cr-cuota-stat-lbl">Capital</div>
-                            <div className="cr-cuota-stat-val" style={{ color:"#475569" }}>${fmt(cuota.capital)}</div>
+                            <div className="cr-cuota-stat-val" style={{ color: "#475569" }}>${fmt(cuota.capital)}</div>
                           </div>
                           <div>
                             <div className="cr-cuota-stat-lbl">Interés</div>
-                            <div className="cr-cuota-stat-val" style={{ color:"#ef4444" }}>${fmt(cuota.interes)}</div>
+                            <div className="cr-cuota-stat-val" style={{ color: "#ef4444" }}>${fmt(cuota.interes)}</div>
                           </div>
                         </div>
                       </div>
@@ -844,12 +864,12 @@ export default function Credito() {
               {!loadingSimulation && !simError && planProyectado.length === 0 && (
                 <div className="cr-sim-empty">
                   <div className="cr-sim-empty-icon">
-                    <FaChartLine size={24} color="#93c5fd"/>
+                    <FaChartLine size={24} color="#93c5fd" />
                   </div>
-                  <p className="cr-brand" style={{ fontWeight:700, color:"#64748b", fontSize:14 }}>
+                  <p className="cr-brand" style={{ fontWeight: 700, color: "#64748b", fontSize: 14 }}>
                     Sin simulación aún
                   </p>
-                  <p style={{ fontSize:12.5, color:"#94a3b8", lineHeight:1.5, maxWidth:220 }}>
+                  <p style={{ fontSize: 12.5, color: "#94a3b8", lineHeight: 1.5, maxWidth: 220 }}>
                     Completa monto, tasa, cuotas y fecha para ver la proyección automáticamente.
                   </p>
                 </div>
@@ -865,7 +885,7 @@ export default function Credito() {
           TOAST
       ══════════════════════════════════ */}
       {toast && (
-        <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)}/>
+        <Toast type={toast.type} message={toast.message} onClose={() => setToast(null)} />
       )}
 
     </div>
