@@ -95,6 +95,7 @@ export default function Pagos() {
   const [loading, setLoading] = useState(false);
   const [modalAbierto, setModalAbierto] = useState(false);
   const [cuotaSeleccionada, setCuotaSeleccionada] = useState(null);
+  const [esUltimaCuota, setEsUltimaCuota] = useState(false);
   const [creditoModal, setCreditoModal] = useState(null);
   const [toast, setToast] = useState(null); // { type, message }
   const [expandidos, setExpandidos] = useState({});   // creditoId -> bool (mobile accordion)
@@ -162,10 +163,27 @@ export default function Pagos() {
         referencia: formPago.referencia,
         notas: formPago.notas,
       };
-      const respuesta = await clienteAxios.post("/api/pagos", datos);
+
+      const { data } = await clienteAxios.post("/api/pagos", datos);
       setModalAbierto(false);
-      setToast({ type: "success", message: respuesta.data.mensaje || "Pago registrado exitosamente." });
+
+      if (data.fue_recortado) {
+        setToast({
+          type: "warning",
+          message:
+            `Pago registrado. Se aplicaron $${fmt(Number(data.monto_aplicado))} ` +
+            `de los $${fmt(Number(data.monto_enviado))} enviados. ` +
+            `Los $${fmt(Number(data.monto_devuelto))} restantes NO fueron cobrados.`,
+        });
+      } else {
+        setToast({
+          type: "success",
+          message: `Pago de $${fmt(data.monto_aplicado)} registrado correctamente.`,
+        });
+      }
+
       handleBuscar();
+
     } catch (error) {
       const msg = error.response?.data?.error || "Error al procesar el pago. Intenta de nuevo.";
       setToast({ type: "error", message: msg });
@@ -182,11 +200,24 @@ export default function Pagos() {
     });
   };
 
-  const abrirModal = (cuota, credito) => {
+  const abrirModal = (cuota, credito, index) => {
+    // mira todas las cuotas que vienen DESPUÉS de esta
+    const cuotasSiguientes = credito.cuotas.slice(index + 1);
+
+    // hay cuotas pendientes después?
+    const hayPendientesDespues = cuotasSiguientes.some(
+      c => c.estado === 'pendiente' || c.estado === 'parcial'
+    );
+
+    // si no hay pendientes después → esta es la última
+    setEsUltimaCuota(!hayPendientesDespues);
+
+    // lo demás igual
     setCuotaSeleccionada(cuota);
     setCreditoModal(credito);
+    const porPagar = cuota.monto_cuota - (cuota.total_pagado ?? 0);
     setFormPago({
-      monto: cuota.monto_cuota - (cuota.total_pagado ?? 0),
+      monto: porPagar,
       metodo_pago: "efectivo",
       referencia: "",
       notas: "",
@@ -196,7 +227,15 @@ export default function Pagos() {
 
   const toggleExpand = (id) => setExpandidos(prev => ({ ...prev, [id]: !prev[id] }));
 
-  const puedeConfirmar = formPago.metodo_pago === "efectivo" || !!formPago.referencia;
+  const porPagarModal = cuotaSeleccionada
+    ? cuotaSeleccionada.monto_cuota - (cuotaSeleccionada.total_pagado ?? 0)
+    : 0;
+
+  const montoExcede = esUltimaCuota && Number(formPago.monto) > porPagarModal;
+
+  const puedeConfirmar =
+    (formPago.metodo_pago === "efectivo" || !!formPago.referencia) &&
+    !montoExcede;
 
   /* ══════════════════════════════════════════════════════════════
      RENDER
@@ -878,7 +917,7 @@ export default function Pagos() {
                           <button
                             className="pg-pay-btn"
                             disabled={bloqueada}
-                            onClick={() => !bloqueada && abrirModal(c, credito)}
+                            onClick={() => !bloqueada && abrirModal(c, credito, index)}
                             title={bloqueadaOrden ? `Pague primero la cuota #${cuotaAnterior.numero_cuota}` : ""}
                             aria-label={bloqueada ? "Cuota bloqueada" : `Pagar cuota ${c.numero_cuota}`}
                             style={{
@@ -984,7 +1023,7 @@ export default function Pagos() {
                             ) : (
                               <button
                                 className="pg-pay-btn-mobile"
-                                onClick={() => abrirModal(c, credito)}
+                                onClick={() => abrirModal(c, credito,index)}
                                 style={{
                                   background: "linear-gradient(135deg,#059669,#047857)",
                                   color: "#fff",
@@ -1084,18 +1123,40 @@ export default function Pagos() {
                   type="number"
                   inputMode="decimal"
                   className="pg-m-input"
-                  style={{ fontWeight: 700, color: "#1d4ed8" }}
+                  style={{
+                    fontWeight: 700,
+                    color: montoExcede ? "#ef4444" : "#1d4ed8",
+                    borderColor: montoExcede ? "#ef4444" : undefined,
+                  }}
                   value={formPago.monto}
-                  onChange={(e) =>
-                    setFormPago({
-                      ...formPago,
-                      monto: e.target.value,
-                    })
-                  }
+                  max={esUltimaCuota ? porPagarModal : undefined}
+                  onChange={(e) => setFormPago({ ...formPago, monto: e.target.value })}
                   aria-label="Monto a pagar"
                 />
-                <p>
-                  ${fmt(formPago.monto || 0)}
+
+                {/* Aviso última cuota */}
+                {esUltimaCuota && (
+                  <div style={{
+                    marginTop: 8, padding: "8px 12px", borderRadius: 10,
+                    background: montoExcede ? "#fff1f2" : "#fffbeb",
+                    border: `1px solid ${montoExcede ? "#fecaca" : "#fde68a"}`,
+                    display: "flex", alignItems: "center", gap: 8,
+                  }}>
+                    <FaInfoCircle size={12} color={montoExcede ? "#ef4444" : "#f59e0b"} />
+                    <p style={{
+                      fontSize: 12, margin: 0, fontWeight: 500,
+                      color: montoExcede ? "#991b1b" : "#92400e"
+                    }}>
+                      {montoExcede
+                        ? `Excede la deuda. Máximo permitido $${fmt(porPagarModal)}.`
+                        : `Última cuota — máximo $${fmt(porPagarModal)}.`
+                      }
+                    </p>
+                  </div>
+                )}
+
+                <p style={{ fontSize: 12, color: "#64748b", marginTop: 4 }}>
+                  ${fmt(Number(formPago.monto) || 0)}
                 </p>
               </div>
 

@@ -32,7 +32,7 @@ const Login = () => {
       });
       if (response.status === 200 || response.status === 400) {
         localStorage.setItem("user_active", "true");
-        navigate("/deudores");
+        navigate("/inicio");
       }
     } catch (error) {
       console.error("error detallado:", error.response);

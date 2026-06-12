@@ -12,22 +12,23 @@ const MENUS = [
   {
     id: "gestion", label: "Gestión", icon: "📋",
     items: [
-      { to: "/Deudores",         icon: "👤", label: "Clientes" },
+      { to: "/inicio", icon: "🏠", label: "Inicio" },
+      { to: "/Deudores", icon: "👤", label: "Clientes" },
       { to: "/Deudores", icon: "💳", label: "Créditos" },
-      { to: "/Pagos",    icon: "💸", label: "Pagos"    },
+      { to: "/Pagos", icon: "💸", label: "Pagos" },
     ],
   },
   {
     id: "reportes", label: "Reportes", icon: "📊",
     items: [
       { to: "#", icon: "📈", label: "Estadísticas" },
-      { to: "#", icon: "🗂️", label: "Historial"    },
+      { to: "#", icon: "🗂️", label: "Historial" },
     ],
   },
   {
     id: "auditoria", label: "Auditoría", icon: "🔍",
     items: [
-      { to: "#", icon: "🛡️", label: "Registros"     },
+      { to: "#", icon: "🛡️", label: "Registros" },
       { to: "#", icon: "⚙️", label: "Configuración" },
     ],
   },
@@ -42,22 +43,22 @@ const formatColombiaDate = (dt) =>
   }).format(dt);
 
 const Navbar = () => {
-  const [scrolled,   setScrolled]   = useState(false);
-  const [menuOpen,   setMenuOpen]   = useState(null);
+  const [scrolled, setScrolled] = useState(false);
+  const [menuOpen, setMenuOpen] = useState(null);
   const [mobileOpen, setMobileOpen] = useState(false);
-  const [dateTime,   setDateTime]   = useState(new Date());
-  const [text,       setText]       = useState("KREDI");
+  const [dateTime, setDateTime] = useState(new Date());
+  const [text, setText] = useState("KREDI");
 
   /* MEJORA: localStorage leído una sola vez */
   const [userInfo] = useState(() => ({
-    name:  localStorage.getItem("user_name")  || "Admin",
+    name: localStorage.getItem("user_name") || "Admin",
     email: localStorage.getItem("user_email") || "online",
   }));
 
-  const menuRef   = useRef(null);
+  const menuRef = useRef(null);
   const drawerRef = useRef(null);
-  const navigate  = useNavigate();
-  const location  = useLocation();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   /* Texto animado — solo primer ciclo, luego se detiene */
   useEffect(() => {
@@ -121,7 +122,7 @@ const Navbar = () => {
     finally { localStorage.clear(); navigate("/login"); }
   }, [navigate]);
 
-  const toggle   = (id) => setMenuOpen((prev) => (prev === id ? null : id));
+  const toggle = (id) => setMenuOpen((prev) => (prev === id ? null : id));
   const isActive = (to) => to !== "#" && location.pathname === to;
 
   return (
@@ -347,7 +348,7 @@ const Navbar = () => {
 
           {/* Logo */}
           <Link to="/" className="nb-logo-wrap" aria-label="Inicio">
-            <img src={logoApp} alt="Logo KREDI" className="nb-logo"/>
+            <img src={logoApp} alt="Logo KREDI" className="nb-logo" />
             <span className="nb-logo-text nb-brand">
               {text}<span className="nb-cursor" aria-hidden="true">|</span>
             </span>
@@ -356,7 +357,7 @@ const Navbar = () => {
           {/* Menús desktop */}
           <nav className="nb-menus" aria-label="Menú principal">
             {MENUS.map((m) => (
-              <div key={m.id} style={{ position:"relative" }}>
+              <div key={m.id} style={{ position: "relative" }}>
                 <button
                   className={`nb-menu-btn${menuOpen === m.id ? " active" : ""}`}
                   onClick={() => toggle(m.id)}
@@ -365,7 +366,7 @@ const Navbar = () => {
                 >
                   <span aria-hidden="true">{m.icon}</span>
                   {m.label}
-                  <FaChevronDown className={`nb-chevron${menuOpen === m.id ? " open" : ""}`} aria-hidden="true"/>
+                  <FaChevronDown className={`nb-chevron${menuOpen === m.id ? " open" : ""}`} aria-hidden="true" />
                 </button>
                 {menuOpen === m.id && (
                   <div className="nb-dropdown" role="menu">
@@ -393,15 +394,15 @@ const Navbar = () => {
 
             <div className="nb-clock-zone">
               <div className="nb-clock">
-                <FaClock style={{ color:"#93c5fd", fontSize:11 }} aria-hidden="true"/>
+                <FaClock style={{ color: "#93c5fd", fontSize: 11 }} aria-hidden="true" />
                 {formatColombiaDate(dateTime)}
               </div>
             </div>
 
-            <div className="nb-sep-zone"><div className="nb-sep" aria-hidden="true"/></div>
+            <div className="nb-sep-zone"><div className="nb-sep" aria-hidden="true" /></div>
 
             {/* Perfil */}
-            <div style={{ position:"relative" }}>
+            <div style={{ position: "relative" }}>
               <button
                 className="nb-profile-btn"
                 onClick={() => toggle("profile")}
@@ -410,26 +411,26 @@ const Navbar = () => {
                 aria-label="Menú de perfil"
               >
                 <div className="nb-avatar" aria-hidden="true">
-                  <FaUserCircle style={{ color:"#fff", fontSize:18 }}/>
+                  <FaUserCircle style={{ color: "#fff", fontSize: 18 }} />
                 </div>
-                <div style={{ textAlign:"left", lineHeight:1.3 }} className="hidden sm:block">
-                  <p style={{ fontSize:11, fontWeight:700, color:"#fff", textTransform:"uppercase", letterSpacing:".04em" }}>
+                <div style={{ textAlign: "left", lineHeight: 1.3 }} className="hidden sm:block">
+                  <p style={{ fontSize: 11, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: ".04em" }}>
                     {userInfo.name}
                   </p>
-                  <p style={{ fontSize:10, color:"rgba(191,219,254,.85)" }}>{userInfo.email}</p>
+                  <p style={{ fontSize: 10, color: "rgba(191,219,254,.85)" }}>{userInfo.email}</p>
                 </div>
-                <FaChevronDown className={`nb-chevron${menuOpen === "profile" ? " open" : ""}`} style={{ color:"rgba(255,255,255,.70)" }} aria-hidden="true"/>
+                <FaChevronDown className={`nb-chevron${menuOpen === "profile" ? " open" : ""}`} style={{ color: "rgba(255,255,255,.70)" }} aria-hidden="true" />
               </button>
 
               {menuOpen === "profile" && (
                 <div className="nb-dropdown nb-dropdown-right" role="menu">
-                  <div style={{ padding:"10px 14px 10px", marginBottom:2 }}>
-                    <p style={{ fontWeight:700, fontSize:13, color:"#1e293b" }}>{userInfo.name}</p>
-                    <p style={{ fontSize:11, color:"#94a3b8", marginTop:1 }}>{userInfo.email}</p>
+                  <div style={{ padding: "10px 14px 10px", marginBottom: 2 }}>
+                    <p style={{ fontWeight: 700, fontSize: 13, color: "#1e293b" }}>{userInfo.name}</p>
+                    <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>{userInfo.email}</p>
                   </div>
-                  <div className="nb-dd-divider" aria-hidden="true"/>
+                  <div className="nb-dd-divider" aria-hidden="true" />
                   <button onClick={handleLogout} className="nb-dd-item danger" role="menuitem">
-                    <FaSignOutAlt aria-hidden="true"/> Cerrar Sesión
+                    <FaSignOutAlt aria-hidden="true" /> Cerrar Sesión
                   </button>
                 </div>
               )}
@@ -443,7 +444,7 @@ const Navbar = () => {
               aria-expanded={mobileOpen}
               aria-controls="nb-mobile-drawer"
             >
-              <FaBars size={18}/>
+              <FaBars size={18} />
             </button>
           </div>
         </div>
@@ -452,7 +453,7 @@ const Navbar = () => {
       {/* ═══ MOBILE DRAWER ═══ */}
       {mobileOpen && (
         <>
-          <div className="nb-overlay" onClick={() => setMobileOpen(false)} aria-hidden="true"/>
+          <div className="nb-overlay" onClick={() => setMobileOpen(false)} aria-hidden="true" />
           <aside
             id="nb-mobile-drawer"
             className="nb-drawer nb-root"
@@ -464,23 +465,23 @@ const Navbar = () => {
             {/* Header */}
             <div className="nb-drawer-hdr">
               <div className="nb-drawer-top">
-                <div style={{ display:"flex", alignItems:"center", gap:10 }}>
-                  <img src={logoApp} alt="" aria-hidden="true" style={{ height:28, filter:"brightness(0) invert(1)" }}/>
-                  <span className="nb-brand" style={{ color:"#fff", fontWeight:900, fontStyle:"italic", letterSpacing:".18em", fontSize:17 }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+                  <img src={logoApp} alt="" aria-hidden="true" style={{ height: 28, filter: "brightness(0) invert(1)" }} />
+                  <span className="nb-brand" style={{ color: "#fff", fontWeight: 900, fontStyle: "italic", letterSpacing: ".18em", fontSize: 17 }}>
                     KREDI
                   </span>
                 </div>
                 <button className="nb-drawer-close" onClick={() => setMobileOpen(false)} aria-label="Cerrar menú">
-                  <FaTimes size={15}/>
+                  <FaTimes size={15} />
                 </button>
               </div>
               <div className="nb-drawer-user">
-                <div className="nb-avatar" style={{ width:38, height:38 }} aria-hidden="true">
-                  <FaUserCircle style={{ color:"#fff", fontSize:20 }}/>
+                <div className="nb-avatar" style={{ width: 38, height: 38 }} aria-hidden="true">
+                  <FaUserCircle style={{ color: "#fff", fontSize: 20 }} />
                 </div>
                 <div>
-                  <p style={{ color:"#fff", fontWeight:700, fontSize:14, lineHeight:1.2 }}>{userInfo.name}</p>
-                  <p style={{ color:"rgba(191,219,254,.85)", fontSize:12, marginTop:2 }}>{userInfo.email}</p>
+                  <p style={{ color: "#fff", fontWeight: 700, fontSize: 14, lineHeight: 1.2 }}>{userInfo.name}</p>
+                  <p style={{ color: "rgba(191,219,254,.85)", fontSize: 12, marginTop: 2 }}>{userInfo.email}</p>
                 </div>
               </div>
             </div>
@@ -488,7 +489,7 @@ const Navbar = () => {
             {/* Body */}
             <div className="nb-drawer-body">
               <div className="nb-drawer-clock">
-                <FaClock style={{ color:"#3b82f6", fontSize:11, flexShrink:0 }} aria-hidden="true"/>
+                <FaClock style={{ color: "#3b82f6", fontSize: 11, flexShrink: 0 }} aria-hidden="true" />
                 {formatColombiaDate(dateTime)}
               </div>
 
@@ -504,16 +505,16 @@ const Navbar = () => {
                       className={`nb-drawer-item${isActive(item.to) ? " active-route" : ""}`}
                       aria-current={isActive(item.to) ? "page" : undefined}
                     >
-                      <span aria-hidden="true" style={{ fontSize:18 }}>{item.icon}</span>
+                      <span aria-hidden="true" style={{ fontSize: 18 }}>{item.icon}</span>
                       {item.label}
                     </Link>
                   ))}
-                  <div className="nb-drawer-divider" aria-hidden="true"/>
+                  <div className="nb-drawer-divider" aria-hidden="true" />
                 </div>
               ))}
 
-              <button onClick={handleLogout} className="nb-drawer-item danger" style={{ marginTop:4 }}>
-                <FaSignOutAlt aria-hidden="true"/> Cerrar Sesión
+              <button onClick={handleLogout} className="nb-drawer-item danger" style={{ marginTop: 4 }}>
+                <FaSignOutAlt aria-hidden="true" /> Cerrar Sesión
               </button>
             </div>
           </aside>

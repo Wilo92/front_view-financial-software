@@ -9,6 +9,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import { useState, useEffect } from "react";
 import clienteAxios from './api/axios';
 import Registro from "./pages/Registro";
+import Dashboard from "./pages/Dashboard";
 
 // Creamos un componente envoltorio para manejar la lógica de la Layout
 const AppContent = () => {
@@ -59,10 +60,11 @@ const AppContent = () => {
           <Route path="/registro" element={<Registro />} />
           <Route path="/" element={<Navigate to="/login" />} />
 
-         
+
 
 
           <Route element={<ProtectedRoute />}>
+            <Route path="/inicio" element={<Dashboard />} />
             <Route path="/deudores" element={<Deudores />} />
             <Route path="/creditos/crear/:id" element={<Credito />} />
             <Route path="/pagos" element={<Pagos />} />
