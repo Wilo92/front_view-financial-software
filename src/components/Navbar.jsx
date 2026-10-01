@@ -1,91 +1,142 @@
-import React, { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import logoApp from "../assets/logo.png";
 import "../index.css";
 import { Link, useNavigate, useLocation } from "react-router-dom";
 import {
-  FaUserCircle, FaSignOutAlt, FaClock,
-  FaBars, FaTimes, FaChevronDown
+  FaUserCircle, FaSignOutAlt,
+  FaBars, FaTimes, FaChevronDown,
 } from "react-icons/fa";
+import {
+  FiHome, FiUsers, FiCreditCard, FiDollarSign,
+  FiBarChart2, FiShield, FiTrendingUp, FiClock, FiFileText, FiSettings,
+  FiChevronRight, FiChevronLeft, FiLogOut,
+} from "react-icons/fi";
 import clienteAxios from "../api/axios";
 
-const MENUS = [
+/* =========================================================
+   1. DATOS DEL MENÚ
+   ========================================================= */
+
+// Enlaces directos: lo que más se usa, a un solo clic
+const NAV_LINKS = [
+  { to: "/inicio",   label: "Inicio",   icon: FiHome },
+  { to: "/deudores", label: "Clientes", icon: FiUsers },
+  { to: "/deudores", label: "Créditos", icon: FiCreditCard },
+  { to: "/pagos",    label: "Pagos",    icon: FiDollarSign },
+];
+
+// Grupos con desplegable (en PC) o segundo nivel (en celular)
+const NAV_GROUPS = [
   {
-    id: "gestion", label: "Gestión", icon: "📋",
+    id: "reportes",
+    label: "Reportes",
+    icon: FiBarChart2,
     items: [
-      { to: "/inicio", icon: "🏠", label: "Inicio" },
-      { to: "/Deudores", icon: "👤", label: "Clientes" },
-      { to: "/Deudores", icon: "💳", label: "Créditos" },
-      { to: "/Pagos", icon: "💸", label: "Pagos" },
+      { to: "/reportes/estadisticas", label: "Estadísticas", desc: "Recaudo, mora y crecimiento", icon: FiTrendingUp, pronto: true },
+      { to: "/reportes/historial",    label: "Historial",    desc: "Movimientos de pagos y créditos", icon: FiClock, pronto: true },
     ],
   },
   {
-    id: "reportes", label: "Reportes", icon: "📊",
+    id: "auditoria",
+    label: "Auditoría",
+    icon: FiShield,
     items: [
-      { to: "#", icon: "📈", label: "Estadísticas" },
-      { to: "#", icon: "🗂️", label: "Historial" },
-    ],
-  },
-  {
-    id: "auditoria", label: "Auditoría", icon: "🔍",
-    items: [
-      { to: "#", icon: "🛡️", label: "Registros" },
-      { to: "#", icon: "⚙️", label: "Configuración" },
+      { to: "/auditoria/registros", label: "Registros",     desc: "Quién hizo qué y cuándo", icon: FiFileText, pronto: true },
+      { to: "/configuracion",       label: "Configuración", desc: "Usuarios y parámetros",   icon: FiSettings, pronto: true },
     ],
   },
 ];
 
-const formatColombiaDate = (dt) =>
-  new Intl.DateTimeFormat("es-CO", {
-    timeZone: "America/Bogota",
-    day: "2-digit", month: "2-digit", year: "numeric",
-    hour: "2-digit", minute: "2-digit", second: "2-digit",
-    hour12: true,
-  }).format(dt);
+/* =========================================================
+   2. LOGO CON EFECTO MÁQUINA DE ESCRIBIR (EN BUCLE)
+   ========================================================= */
+const PALABRA = "KREDI";
 
+function TypewriterLogo() {
+  const reducirMovimiento =
+    typeof window !== "undefined" &&
+    window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+  const [texto, setTexto] = useState(reducirMovimiento ? PALABRA : "");
+  const [borrando, setBorrando] = useState(false);
+
+  useEffect(() => {
+    if (reducirMovimiento) return;
+
+    let espera;
+
+    if (!borrando && texto === PALABRA) {
+      // Terminó de escribir: se queda quieta 2,5 segundos
+      espera = setTimeout(() => setBorrando(true), 2500);
+    } else if (borrando && texto === "") {
+      // Terminó de borrar: pausa corta antes de volver a escribir
+      espera = setTimeout(() => setBorrando(false), 500);
+    } else {
+      // Agrega o quita una letra
+      espera = setTimeout(() => {
+        const largo = borrando ? texto.length - 1 : texto.length + 1;
+        setTexto(PALABRA.slice(0, largo));
+      }, borrando ? 70 : 140);
+    }
+
+    return () => clearTimeout(espera);
+  }, [texto, borrando, reducirMovimiento]);
+
+  return (
+    <span className="nb-logo-text nb-brand" aria-label={PALABRA}>
+      {/* Palabra completa invisible: reserva el ancho para que nada se mueva */}
+      <span className="nb-logo-ghost" aria-hidden="true">
+        {PALABRA}<span className="nb-cursor">|</span>
+      </span>
+      {/* Palabra animada encima */}
+      <span className="nb-logo-live" aria-hidden="true">
+        {texto}<span className="nb-cursor">|</span>
+      </span>
+    </span>
+  );
+}
+
+/* =========================================================
+   3. NAVBAR
+   ========================================================= */
 const Navbar = () => {
   const [scrolled, setScrolled] = useState(false);
-  const [menuOpen, setMenuOpen] = useState(null);
-  const [mobileOpen, setMobileOpen] = useState(false);
-  const [dateTime, setDateTime] = useState(new Date());
-  const [text, setText] = useState("KREDI");
+  const [menuOpen, setMenuOpen] = useState(null);       // desplegable abierto en PC
+  const [mobileOpen, setMobileOpen] = useState(false);  // menú del celular abierto
+  const [subId, setSubId] = useState(null);             // qué grupo se muestra en el 2º nivel
+  const [subOpen, setSubOpen] = useState(false);        // si el 2º nivel está visible
 
-  /* MEJORA: localStorage leído una sola vez */
+  const menuRef = useRef(null);
+  const closeBtnRef = useRef(null);
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  /* localStorage leído una sola vez */
   const [userInfo] = useState(() => ({
     name: localStorage.getItem("user_name") || "Admin",
     email: localStorage.getItem("user_email") || "online",
   }));
 
-  const menuRef = useRef(null);
-  const drawerRef = useRef(null);
-  const navigate = useNavigate();
-  const location = useLocation();
-
-  /* Texto animado — solo primer ciclo, luego se detiene */
-  useEffect(() => {
-    const fullText = "KREDI";
-    let i = 0;
-    const iv = setInterval(() => {
-      i++;
-      setText(fullText.slice(0, i));
-      if (i >= fullText.length) clearInterval(iv);
-    }, 120);
-    return () => clearInterval(iv);
+  const cerrarMovil = useCallback(() => {
+    setMobileOpen(false);
+    setSubOpen(false);
   }, []);
 
-  /* Reloj */
-  useEffect(() => {
-    const t = setInterval(() => setDateTime(new Date()), 1000);
-    return () => clearInterval(t);
-  }, []);
+  const abrirSub = (id) => {
+    setSubId(id);
+    setSubOpen(true);
+  };
 
-  /* Scroll */
+  const grupoActivo = NAV_GROUPS.find((g) => g.id === subId);
+
+  /* Sombra al hacer scroll */
   useEffect(() => {
     const fn = () => setScrolled(window.scrollY > 10);
     window.addEventListener("scroll", fn, { passive: true });
     return () => window.removeEventListener("scroll", fn);
   }, []);
 
-  /* Click fuera cierra dropdown */
+  /* Click fuera cierra el desplegable de PC */
   useEffect(() => {
     const fn = (e) => {
       if (menuRef.current && !menuRef.current.contains(e.target)) setMenuOpen(null);
@@ -97,25 +148,30 @@ const Navbar = () => {
   /* Escape cierra todo */
   useEffect(() => {
     const fn = (e) => {
-      if (e.key === "Escape") { setMobileOpen(false); setMenuOpen(null); }
+      if (e.key === "Escape") { cerrarMovil(); setMenuOpen(null); }
     };
     document.addEventListener("keydown", fn);
     return () => document.removeEventListener("keydown", fn);
-  }, []);
+  }, [cerrarMovil]);
 
-  /* Bloquear scroll del body con drawer abierto */
+  /* Bloquear scroll del body con el menú móvil abierto */
   useEffect(() => {
     document.body.style.overflow = mobileOpen ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
   }, [mobileOpen]);
 
-  /* Cerrar al cambiar de ruta */
+  /* Cerrar menús al cambiar de ruta */
   useEffect(() => {
-    setMobileOpen(false);
+    cerrarMovil();
     setMenuOpen(null);
-  }, [location.pathname]);
+  }, [location.pathname, cerrarMovil]);
 
-  /* Logout */
+  /* Foco en el botón cerrar al abrir el menú móvil */
+  useEffect(() => {
+    if (mobileOpen) closeBtnRef.current?.focus();
+  }, [mobileOpen]);
+
+  /* Cerrar sesión */
   const handleLogout = useCallback(async () => {
     try { await clienteAxios.post("api/logout"); }
     catch (err) { console.error("error al cerrar sesión", err); }
@@ -123,286 +179,106 @@ const Navbar = () => {
   }, [navigate]);
 
   const toggle = (id) => setMenuOpen((prev) => (prev === id ? null : id));
-  const isActive = (to) => to !== "#" && location.pathname === to;
+  const isActive = (to) =>
+    location.pathname === to || location.pathname.startsWith(to + "/");
 
   return (
     <>
-      <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600&display=swap');
+      <style>{CSS}</style>
 
-        .nb-root  { font-family:'DM Sans',sans-serif; }
-        .nb-brand { font-family:'Sora',sans-serif !important; }
-
-        /* NAV — safe-area-inset-top para notch */
-        .nb-nav {
-          position:fixed; top:0; left:0; width:100%; z-index:100;
-          background:linear-gradient(135deg,#1d4ed8 0%,#2563eb 60%,#3b82f6 100%);
-          border-bottom:1px solid rgba(255,255,255,.10);
-          padding-top:env(safe-area-inset-top);
-          transition:box-shadow .3s;
-        }
-        .nb-nav.scrolled { box-shadow:0 4px 32px rgba(29,78,216,.50); }
-
-        .nb-inner {
-          max-width:1280px; margin:0 auto;
-          padding:0 max(16px,env(safe-area-inset-left));
-          display:flex; align-items:center; justify-content:space-between; gap:12px;
-          height:60px; transition:height .2s;
-        }
-        .nb-nav.scrolled .nb-inner { height:54px; }
-
-        /* Logo */
-        .nb-logo-wrap { display:flex; align-items:center; gap:10px; flex-shrink:0; text-decoration:none; }
-        .nb-logo { height:36px; width:auto; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,.25)); }
-        .nb-logo-text { font-family:'Sora',sans-serif; font-size:20px; font-weight:900; font-style:italic; letter-spacing:.20em; color:#fff; min-width:86px; }
-        .nb-cursor { animation:nbBlink .9s step-end infinite; color:#93c5fd; margin-left:1px; }
-        @keyframes nbBlink { 0%,100%{opacity:1} 50%{opacity:0} }
-
-        /* Menús desktop */
-        .nb-menus { display:none; }
-        @media(min-width:1024px){ .nb-menus{display:flex;align-items:center;gap:6px;flex:1;margin-left:16px;} }
-
-        .nb-menu-btn {
-          display:flex; align-items:center; gap:6px;
-          padding:7px 16px; border-radius:10px;
-          font-size:13px; font-weight:600; color:rgba(255,255,255,.90);
-          background:rgba(255,255,255,.08); border:1px solid rgba(255,255,255,.14);
-          cursor:pointer; white-space:nowrap;
-          transition:background .18s,transform .14s;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .nb-menu-btn:hover,.nb-menu-btn.active { background:rgba(255,255,255,.20); transform:translateY(-1px); }
-        .nb-menu-btn:active { transform:scale(.98); }
-        .nb-chevron { transition:transform .22s; font-size:10px; opacity:.75; flex-shrink:0; }
-        .nb-chevron.open { transform:rotate(180deg); }
-
-        /* Dropdown desktop */
-        .nb-dropdown {
-          position:absolute; top:calc(100% + 8px); left:0; min-width:210px;
-          background:#fff; border-radius:16px;
-          border:1px solid rgba(59,130,246,.14);
-          box-shadow:0 16px 48px rgba(29,78,216,.20),0 2px 8px rgba(0,0,0,.08);
-          padding:6px; z-index:200;
-          animation:nbPop .18s cubic-bezier(.22,1,.36,1);
-        }
-        .nb-dropdown-right { left:auto; right:0; }
-        @keyframes nbPop { from{opacity:0;transform:translateY(-8px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
-
-        .nb-dd-item {
-          display:flex; align-items:center; gap:10px;
-          padding:10px 14px; border-radius:10px;
-          font-size:13.5px; font-weight:500; color:#1e293b;
-          text-decoration:none; background:none; border:none;
-          cursor:pointer; width:100%; text-align:left;
-          transition:background .14s,color .14s;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .nb-dd-item:hover { background:#eff6ff; color:#2563eb; }
-        .nb-dd-item.active-route { background:#eff6ff; color:#2563eb; font-weight:700; }
-        .nb-dd-item.danger { color:#dc2626; font-weight:700; }
-        .nb-dd-item.danger:hover { background:#fff1f2; }
-        .nb-dd-divider { height:1px; background:#f1f5f9; margin:4px 6px; }
-
-        /* Reloj */
-        .nb-clock {
-          display:flex; align-items:center; gap:7px;
-          font-family:monospace; font-size:11px; color:rgba(255,255,255,.85);
-          background:rgba(0,0,0,.18); padding:6px 12px; border-radius:8px;
-          border:1px solid rgba(255,255,255,.10); white-space:nowrap;
-        }
-
-        /* Separador */
-        .nb-sep { width:1px; height:26px; background:rgba(255,255,255,.16); flex-shrink:0; }
-
-        /* Perfil */
-        .nb-profile-btn {
-          display:flex; align-items:center; gap:9px;
-          padding:5px 12px 5px 6px; border-radius:50px;
-          background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.20);
-          cursor:pointer; min-height:44px;
-          transition:background .18s;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .nb-profile-btn:hover { background:rgba(255,255,255,.22); }
-        .nb-avatar {
-          width:32px; height:32px; border-radius:50%; flex-shrink:0;
-          background:linear-gradient(135deg,#60a5fa,#a78bfa);
-          display:flex; align-items:center; justify-content:center;
-          box-shadow:0 0 0 2px rgba(255,255,255,.28);
-        }
-
-        /* Right side show/hide helpers */
-        .nb-right { display:flex; align-items:center; gap:10px; }
-        .nb-clock-zone { display:none; }
-        @media(min-width:1280px){ .nb-clock-zone{display:flex;} }
-        .nb-sep-zone { display:none; }
-        @media(min-width:1024px){ .nb-sep-zone{display:flex;} }
-
-        /* Hamburguesa — 44×44px */
-        .nb-hamburger {
-          display:flex; align-items:center; justify-content:center;
-          width:44px; height:44px; border-radius:12px;
-          background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.16);
-          color:#fff; cursor:pointer; flex-shrink:0;
-          transition:background .16s,transform .14s;
-          -webkit-tap-highlight-color:transparent; touch-action:manipulation;
-        }
-        .nb-hamburger:hover { background:rgba(255,255,255,.20); }
-        .nb-hamburger:active { transform:scale(.94); }
-        @media(min-width:1024px){ .nb-hamburger{display:none;} }
-
-        /* ── MOBILE DRAWER ── */
-        .nb-overlay {
-          position:fixed; inset:0; z-index:900;
-          background:rgba(15,23,42,.55);
-          backdrop-filter:blur(4px); -webkit-backdrop-filter:blur(4px);
-          animation:nbFade .2s ease;
-        }
-        @keyframes nbFade { from{opacity:0} to{opacity:1} }
-
-        .nb-drawer {
-          position:fixed; top:0; left:0;
-          width:min(320px,88vw); height:100dvh;
-          background:#fff; z-index:910;
-          display:flex; flex-direction:column; overflow:hidden;
-          box-shadow:6px 0 48px rgba(29,78,216,.22);
-          animation:nbSlide .26s cubic-bezier(.22,1,.36,1);
-        }
-        @keyframes nbSlide { from{transform:translateX(-100%)} to{transform:translateX(0)} }
-
-        .nb-drawer-hdr {
-          background:linear-gradient(135deg,#1d4ed8,#3b82f6);
-          padding:max(20px,calc(env(safe-area-inset-top) + 12px)) 20px 20px;
-          flex-shrink:0;
-        }
-        .nb-drawer-top { display:flex; align-items:center; justify-content:space-between; margin-bottom:14px; }
-
-        /* X del drawer — 44×44px */
-        .nb-drawer-close {
-          width:44px; height:44px; border-radius:12px;
-          background:rgba(255,255,255,.15); border:none; color:rgba(255,255,255,.90);
-          cursor:pointer; display:flex; align-items:center; justify-content:center;
-          flex-shrink:0; transition:background .15s;
-          -webkit-tap-highlight-color:transparent;
-        }
-        .nb-drawer-close:hover { background:rgba(255,255,255,.25); }
-        .nb-drawer-close:active { background:rgba(255,255,255,.35); }
-
-        .nb-drawer-user {
-          display:flex; align-items:center; gap:12px;
-          background:rgba(255,255,255,.14); border-radius:14px; padding:10px 14px;
-        }
-
-        .nb-drawer-body {
-          flex:1; overflow-y:auto; overscroll-behavior:contain; padding:8px 12px;
-          padding-bottom:max(16px,env(safe-area-inset-bottom));
-        }
-
-        .nb-drawer-section-lbl {
-          font-size:10px; font-weight:700; text-transform:uppercase;
-          letter-spacing:.12em; color:#94a3b8; padding:10px 10px 5px;
-          display:flex; align-items:center; gap:6px;
-        }
-
-        /* Drawer items — 52px min-height */
-        .nb-drawer-item {
-          display:flex; align-items:center; gap:12px;
-          min-height:52px; padding:0 12px; border-radius:12px;
-          font-size:14px; font-weight:500; color:#1e293b;
-          text-decoration:none; cursor:pointer;
-          background:none; border:none; width:100%; text-align:left;
-          transition:background .14s,color .14s;
-          -webkit-tap-highlight-color:transparent; touch-action:manipulation;
-        }
-        .nb-drawer-item:hover { background:#eff6ff; color:#2563eb; }
-        .nb-drawer-item:active { background:#dbeafe; }
-        .nb-drawer-item.active-route { background:#eff6ff; color:#2563eb; font-weight:700; }
-        .nb-drawer-item.danger { color:#dc2626; font-weight:700; }
-        .nb-drawer-item.danger:hover { background:#fff1f2; }
-
-        .nb-drawer-divider { height:1px; background:#f1f5f9; margin:4px 0; }
-
-        .nb-drawer-clock {
-          display:flex; align-items:center; gap:8px;
-          background:#f0f4ff; border:1px solid #e2e8f0;
-          border-radius:10px; padding:9px 14px;
-          font-family:monospace; font-size:12px; color:#475569;
-          margin:8px 0 4px;
-        }
-
-        /* Reduce motion */
-        @media(prefers-reduced-motion:reduce){
-          .nb-drawer,.nb-overlay,.nb-dropdown{animation:none!important;}
-          .nb-cursor{animation:none!important;}
-        }
-      `}</style>
-
-      {/* ═══ NAV PRINCIPAL ═══ */}
+      {/* ═══ BARRA PRINCIPAL ═══ */}
       <nav
         ref={menuRef}
         className={`nb-nav nb-root${scrolled ? " scrolled" : ""}`}
-        role="navigation"
         aria-label="Navegación principal"
       >
         <div className="nb-inner">
 
           {/* Logo */}
-          <Link to="/" className="nb-logo-wrap" aria-label="Inicio">
-            <img src={logoApp} alt="Logo KREDI" className="nb-logo" />
-            <span className="nb-logo-text nb-brand">
-              {text}<span className="nb-cursor" aria-hidden="true">|</span>
-            </span>
+          <Link to="/inicio" className="nb-logo-wrap" aria-label="Ir al inicio">
+            <img src={logoApp} alt="" className="nb-logo" />
+            <TypewriterLogo />
           </Link>
 
-          {/* Menús desktop */}
-          <nav className="nb-menus" aria-label="Menú principal">
-            {MENUS.map((m) => (
-              <div key={m.id} style={{ position: "relative" }}>
-                <button
-                  className={`nb-menu-btn${menuOpen === m.id ? " active" : ""}`}
-                  onClick={() => toggle(m.id)}
-                  aria-expanded={menuOpen === m.id}
-                  aria-haspopup="true"
+          {/* Enlaces de escritorio */}
+          <div className="nb-menus">
+            {NAV_LINKS.map((link) => {
+              const Icon = link.icon;
+              const activo = isActive(link.to);
+              return (
+                <Link
+                  key={link.label}
+                  to={link.to}
+                  className={`nb-link${activo ? " is-active" : ""}`}
+                  aria-current={activo ? "page" : undefined}
                 >
-                  <span aria-hidden="true">{m.icon}</span>
-                  {m.label}
-                  <FaChevronDown className={`nb-chevron${menuOpen === m.id ? " open" : ""}`} aria-hidden="true" />
-                </button>
-                {menuOpen === m.id && (
-                  <div className="nb-dropdown" role="menu">
-                    {m.items.map((item) => (
-                      <Link
-                        key={item.to + item.label}
-                        to={item.to}
-                        className={`nb-dd-item${isActive(item.to) ? " active-route" : ""}`}
-                        onClick={() => setMenuOpen(null)}
-                        role="menuitem"
-                        aria-current={isActive(item.to) ? "page" : undefined}
-                      >
-                        <span aria-hidden="true">{item.icon}</span>
-                        {item.label}
-                      </Link>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ))}
-          </nav>
+                  <Icon size={16} aria-hidden="true" />
+                  {link.label}
+                </Link>
+              );
+            })}
+
+            {NAV_GROUPS.map((grupo) => {
+              const Icon = grupo.icon;
+              const abierto = menuOpen === grupo.id;
+              return (
+                <div key={grupo.id} className="nb-group">
+                  <button
+                    className={`nb-link${abierto ? " is-open" : ""}`}
+                    onClick={() => toggle(grupo.id)}
+                    aria-expanded={abierto}
+                    aria-haspopup="true"
+                  >
+                    <Icon size={16} aria-hidden="true" />
+                    {grupo.label}
+                    <FaChevronDown className={`nb-chevron${abierto ? " open" : ""}`} aria-hidden="true" />
+                  </button>
+
+                  {abierto && (
+                    <div className="nb-dropdown nb-dropdown-wide" role="menu">
+                      {grupo.items.map((item) => {
+                        const ItemIcon = item.icon;
+                        const contenido = (
+                          <>
+                            <span className="nb-dd-icon"><ItemIcon size={16} aria-hidden="true" /></span>
+                            <span className="nb-dd-text">
+                              <span className="nb-dd-title">
+                                {item.label}
+                                {item.pronto && <span className="nb-soon">Pronto</span>}
+                              </span>
+                              <span className="nb-dd-desc">{item.desc}</span>
+                            </span>
+                          </>
+                        );
+
+                        return item.pronto ? (
+                          <div key={item.label} className="nb-dd-item is-disabled" aria-disabled="true">
+                            {contenido}
+                          </div>
+                        ) : (
+                          <Link
+                            key={item.label}
+                            to={item.to}
+                            className="nb-dd-item"
+                            role="menuitem"
+                            onClick={() => setMenuOpen(null)}
+                          >
+                            {contenido}
+                          </Link>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+              );
+            })}
+          </div>
 
           {/* Lado derecho */}
           <div className="nb-right">
 
-            <div className="nb-clock-zone">
-              <div className="nb-clock">
-                <FaClock style={{ color: "#93c5fd", fontSize: 11 }} aria-hidden="true" />
-                {formatColombiaDate(dateTime)}
-              </div>
-            </div>
-
-            <div className="nb-sep-zone"><div className="nb-sep" aria-hidden="true" /></div>
-
-            {/* Perfil */}
-            <div style={{ position: "relative" }}>
+            {/* Perfil (solo PC) */}
+            <div className="nb-profile-zone">
               <button
                 className="nb-profile-btn"
                 onClick={() => toggle("profile")}
@@ -413,36 +289,38 @@ const Navbar = () => {
                 <div className="nb-avatar" aria-hidden="true">
                   <FaUserCircle style={{ color: "#fff", fontSize: 18 }} />
                 </div>
-                <div style={{ textAlign: "left", lineHeight: 1.3 }} className="hidden sm:block">
-                  <p style={{ fontSize: 11, fontWeight: 700, color: "#fff", textTransform: "uppercase", letterSpacing: ".04em" }}>
-                    {userInfo.name}
-                  </p>
-                  <p style={{ fontSize: 10, color: "rgba(191,219,254,.85)" }}>{userInfo.email}</p>
+                <div className="nb-profile-text">
+                  <p className="nb-profile-name">{userInfo.name}</p>
+                  <p className="nb-profile-mail">{userInfo.email}</p>
                 </div>
-                <FaChevronDown className={`nb-chevron${menuOpen === "profile" ? " open" : ""}`} style={{ color: "rgba(255,255,255,.70)" }} aria-hidden="true" />
+                <FaChevronDown
+                  className={`nb-chevron${menuOpen === "profile" ? " open" : ""}`}
+                  style={{ color: "rgba(255,255,255,.70)" }}
+                  aria-hidden="true"
+                />
               </button>
 
               {menuOpen === "profile" && (
                 <div className="nb-dropdown nb-dropdown-right" role="menu">
-                  <div style={{ padding: "10px 14px 10px", marginBottom: 2 }}>
-                    <p style={{ fontWeight: 700, fontSize: 13, color: "#1e293b" }}>{userInfo.name}</p>
-                    <p style={{ fontSize: 11, color: "#94a3b8", marginTop: 1 }}>{userInfo.email}</p>
+                  <div className="nb-dd-user">
+                    <p className="nb-dd-user-name">{userInfo.name}</p>
+                    <p className="nb-dd-user-mail">{userInfo.email}</p>
                   </div>
                   <div className="nb-dd-divider" aria-hidden="true" />
                   <button onClick={handleLogout} className="nb-dd-item danger" role="menuitem">
-                    <FaSignOutAlt aria-hidden="true" /> Cerrar Sesión
+                    <FaSignOutAlt aria-hidden="true" /> Cerrar sesión
                   </button>
                 </div>
               )}
             </div>
 
-            {/* Hamburguesa — 44×44px */}
+            {/* Botón de barras (solo celular) */}
             <button
               className="nb-hamburger"
               onClick={() => setMobileOpen(true)}
               aria-label="Abrir menú"
               aria-expanded={mobileOpen}
-              aria-controls="nb-mobile-drawer"
+              aria-controls="nb-mobile-menu"
             >
               <FaBars size={18} />
             </button>
@@ -450,78 +328,327 @@ const Navbar = () => {
         </div>
       </nav>
 
-      {/* ═══ MOBILE DRAWER ═══ */}
-      {mobileOpen && (
-        <>
-          <div className="nb-overlay" onClick={() => setMobileOpen(false)} aria-hidden="true" />
-          <aside
-            id="nb-mobile-drawer"
-            className="nb-drawer nb-root"
-            ref={drawerRef}
-            role="dialog"
-            aria-modal="true"
-            aria-label="Menú de navegación"
-          >
-            {/* Header */}
-            <div className="nb-drawer-hdr">
-              <div className="nb-drawer-top">
-                <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                  <img src={logoApp} alt="" aria-hidden="true" style={{ height: 28, filter: "brightness(0) invert(1)" }} />
-                  <span className="nb-brand" style={{ color: "#fff", fontWeight: 900, fontStyle: "italic", letterSpacing: ".18em", fontSize: 17 }}>
-                    KREDI
-                  </span>
-                </div>
-                <button className="nb-drawer-close" onClick={() => setMobileOpen(false)} aria-label="Cerrar menú">
-                  <FaTimes size={15} />
-                </button>
-              </div>
-              <div className="nb-drawer-user">
-                <div className="nb-avatar" style={{ width: 38, height: 38 }} aria-hidden="true">
-                  <FaUserCircle style={{ color: "#fff", fontSize: 20 }} />
-                </div>
-                <div>
-                  <p style={{ color: "#fff", fontWeight: 700, fontSize: 14, lineHeight: 1.2 }}>{userInfo.name}</p>
-                  <p style={{ color: "rgba(191,219,254,.85)", fontSize: 12, marginTop: 2 }}>{userInfo.email}</p>
-                </div>
-              </div>
-            </div>
+      {/* Espacio que ocupa la barra fija */}
+      <div className="nb-spacer" aria-hidden="true" />
 
-            {/* Body */}
-            <div className="nb-drawer-body">
-              <div className="nb-drawer-clock">
-                <FaClock style={{ color: "#3b82f6", fontSize: 11, flexShrink: 0 }} aria-hidden="true" />
-                {formatColombiaDate(dateTime)}
-              </div>
+      {/* ═══ MENÚ MÓVIL POR NIVELES ═══ */}
+      <div
+        id="nb-mobile-menu"
+        className={`nb-mwrap nb-root${mobileOpen ? " is-open" : ""}${subOpen ? " is-sub" : ""}`}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Menú de navegación"
+        aria-hidden={!mobileOpen}
+        inert={!mobileOpen}
+      >
+        {/* ── Nivel 1 ── */}
+        <div className="nb-mpanel l1" inert={subOpen}>
+          <div className="nb-mtop">
+            <img src={logoApp} alt="KREDI" className="nb-mlogo" />
+            <button ref={closeBtnRef} className="nb-mclose" onClick={cerrarMovil} aria-label="Cerrar menú">
+              <FaTimes size={16} />
+            </button>
+          </div>
 
-              {MENUS.map((m) => (
-                <div key={m.id}>
-                  <p className="nb-drawer-section-lbl">
-                    <span aria-hidden="true">{m.icon}</span>{m.label}
-                  </p>
-                  {m.items.map((item) => (
-                    <Link
-                      key={item.to + item.label}
-                      to={item.to}
-                      className={`nb-drawer-item${isActive(item.to) ? " active-route" : ""}`}
-                      aria-current={isActive(item.to) ? "page" : undefined}
-                    >
-                      <span aria-hidden="true" style={{ fontSize: 18 }}>{item.icon}</span>
-                      {item.label}
-                    </Link>
-                  ))}
-                  <div className="nb-drawer-divider" aria-hidden="true" />
-                </div>
-              ))}
+          <nav className="nb-mlist" aria-label="Menú principal">
+            {NAV_LINKS.map((link) => (
+              <Link
+                key={link.label}
+                to={link.to}
+                className={`nb-mitem${isActive(link.to) ? " is-active" : ""}`}
+                aria-current={isActive(link.to) ? "page" : undefined}
+                onClick={cerrarMovil}
+              >
+                {link.label}
+              </Link>
+            ))}
 
-              <button onClick={handleLogout} className="nb-drawer-item danger" style={{ marginTop: 4 }}>
-                <FaSignOutAlt aria-hidden="true" /> Cerrar Sesión
+            {NAV_GROUPS.map((grupo) => (
+              <button key={grupo.id} className="nb-mitem" onClick={() => abrirSub(grupo.id)}>
+                {grupo.label}
+                <FiChevronRight size={24} aria-hidden="true" />
               </button>
+            ))}
+          </nav>
+
+          <div className="nb-mfoot">
+            <div className="nb-muser">
+              <div className="nb-avatar" style={{ width: 42, height: 42 }} aria-hidden="true">
+                <FaUserCircle style={{ color: "#fff", fontSize: 22 }} />
+              </div>
+              <div>
+                <p className="nb-muser-name">{userInfo.name}</p>
+                <p className="nb-muser-mail">{userInfo.email}</p>
+              </div>
             </div>
-          </aside>
-        </>
-      )}
+            <button className="nb-mbtn" onClick={handleLogout}>
+              <FiLogOut size={16} aria-hidden="true" /> Cerrar sesión
+            </button>
+          </div>
+        </div>
+
+        {/* ── Nivel 2 ── */}
+        <div className="nb-mpanel l2" inert={!subOpen}>
+          <div className="nb-mtop">
+            <button className="nb-mback" onClick={() => setSubOpen(false)}>
+              <FiChevronLeft size={20} aria-hidden="true" /> Menú
+            </button>
+            <button className="nb-mclose" onClick={cerrarMovil} aria-label="Cerrar menú">
+              <FaTimes size={16} />
+            </button>
+          </div>
+
+          {grupoActivo && (
+            <nav className="nb-mlist" aria-label={grupoActivo.label}>
+              <h2 className="nb-mtitle">{grupoActivo.label}</h2>
+              {grupoActivo.items.map((item) =>
+                item.pronto ? (
+                  <div key={item.label} className="nb-mitem sm is-disabled" aria-disabled="true">
+                    {item.label}
+                    <span className="nb-soon">Pronto</span>
+                  </div>
+                ) : (
+                  <Link key={item.label} to={item.to} className="nb-mitem sm" onClick={cerrarMovil}>
+                    {item.label}
+                  </Link>
+                )
+              )}
+            </nav>
+          )}
+        </div>
+      </div>
     </>
   );
 };
 
 export default Navbar;
+
+/* =========================================================
+   4. ESTILOS
+   ========================================================= */
+const CSS = `
+@import url('https://fonts.googleapis.com/css2?family=Sora:wght@600;700;800&family=DM+Sans:ital,opsz,wght@0,9..40,400;0,9..40,500;0,9..40,600;0,9..40,700;0,9..40,800&display=swap');
+
+.nb-root  { font-family:'DM Sans',system-ui,sans-serif; }
+.nb-brand { font-family:'Sora',system-ui,sans-serif !important; }
+
+/* ── Barra ── */
+.nb-nav {
+  position:fixed; top:0; left:0; width:100%; z-index:100;
+  background:linear-gradient(135deg,#1d4ed8 0%,#2563eb 60%,#3b82f6 100%);
+  border-bottom:1px solid rgba(255,255,255,.10);
+  padding-top:env(safe-area-inset-top);
+  transition:box-shadow .3s;
+}
+.nb-nav.scrolled { box-shadow:0 4px 32px rgba(29,78,216,.50); }
+
+.nb-inner {
+  max-width:1280px; margin:0 auto;
+  padding:0 max(16px,env(safe-area-inset-left));
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  height:60px; transition:height .2s;
+}
+.nb-nav.scrolled .nb-inner { height:54px; }
+
+/* Reserva el alto de la barra fija para que no tape el contenido */
+.nb-spacer { height:calc(60px + env(safe-area-inset-top)); }
+
+/* ── Logo ── */
+.nb-logo-wrap { display:flex; align-items:center; gap:10px; flex-shrink:0; text-decoration:none; }
+.nb-logo { height:36px; width:auto; object-fit:contain; filter:drop-shadow(0 2px 6px rgba(0,0,0,.25)); }
+.nb-logo-text {
+  display:inline-grid;
+  font-family:'Sora',system-ui,sans-serif; font-size:20px; font-weight:800; font-style:italic;
+  letter-spacing:.20em; color:#fff; white-space:nowrap;
+}
+.nb-logo-ghost, .nb-logo-live { grid-area:1 / 1; }
+.nb-logo-ghost { visibility:hidden; }
+.nb-cursor { animation:nbBlink .9s step-end infinite; color:#93c5fd; margin-left:1px; font-style:normal; }
+@keyframes nbBlink { 0%,100%{opacity:1} 50%{opacity:0} }
+
+/* ── Enlaces de escritorio ── */
+.nb-menus { display:none; }
+@media(min-width:1024px){ .nb-menus{ display:flex; align-items:center; gap:2px; } }
+
+/* En PC: logo a la izquierda, enlaces al centro, perfil a la derecha */
+@media(min-width:1024px){
+  .nb-inner { display:grid; grid-template-columns:1fr auto 1fr; }
+  .nb-logo-wrap { justify-self:start; }
+  .nb-menus { justify-self:center; }
+  .nb-right { justify-self:end; }
+}
+
+.nb-group { position:relative; }
+
+.nb-link {
+  display:flex; align-items:center; gap:7px;
+  padding:8px 12px; border-radius:9px;
+  font-family:inherit; font-size:13.5px; font-weight:600;
+  color:rgba(255,255,255,.82); text-decoration:none;
+  background:none; border:0; cursor:pointer; white-space:nowrap;
+  transition:background .15s, color .15s;
+}
+.nb-link:hover, .nb-link.is-open { background:rgba(255,255,255,.12); color:#fff; }
+.nb-link.is-active { background:#fff; color:#2563eb; }
+.nb-link:focus-visible { outline:2px solid #fff; outline-offset:2px; }
+
+.nb-chevron { transition:transform .22s; font-size:10px; opacity:.75; flex-shrink:0; }
+.nb-chevron.open { transform:rotate(180deg); }
+
+/* ── Desplegables de escritorio ── */
+.nb-dropdown {
+  position:absolute; top:calc(100% + 8px); left:0; min-width:210px;
+  background:#fff; border-radius:16px;
+  border:1px solid rgba(59,130,246,.14);
+  box-shadow:0 16px 48px rgba(29,78,216,.20),0 2px 8px rgba(0,0,0,.08);
+  padding:6px; z-index:200;
+  animation:nbPop .18s cubic-bezier(.22,1,.36,1);
+}
+.nb-dropdown-right { left:auto; right:0; }
+.nb-dropdown-wide { min-width:290px; }
+@keyframes nbPop { from{opacity:0;transform:translateY(-8px) scale(.97)} to{opacity:1;transform:translateY(0) scale(1)} }
+
+.nb-dd-item {
+  display:flex; align-items:center; gap:10px;
+  padding:10px 14px; border-radius:10px;
+  font-family:inherit; font-size:13.5px; font-weight:500; color:#1e293b;
+  text-decoration:none; background:none; border:none;
+  cursor:pointer; width:100%; text-align:left;
+  transition:background .14s,color .14s;
+}
+.nb-dd-item:hover { background:#eff6ff; color:#2563eb; }
+.nb-dd-item.danger { color:#dc2626; font-weight:700; }
+.nb-dd-item.danger:hover { background:#fff1f2; }
+.nb-dd-item.is-disabled { cursor:default; opacity:.65; }
+.nb-dd-item.is-disabled:hover { background:none; color:#1e293b; }
+
+.nb-dd-icon {
+  width:34px; height:34px; border-radius:9px; flex-shrink:0;
+  background:#eff6ff; color:#2563eb;
+  display:flex; align-items:center; justify-content:center;
+}
+.nb-dd-text { display:flex; flex-direction:column; gap:1px; }
+.nb-dd-title { font-size:13px; font-weight:600; color:#0f172a; display:flex; align-items:center; gap:6px; }
+.nb-dd-desc { font-size:11.5px; font-weight:400; color:#94a3b8; }
+.nb-dd-divider { height:1px; background:#f1f5f9; margin:4px 6px; }
+.nb-dd-user { padding:10px 14px; }
+.nb-dd-user-name { font-weight:700; font-size:13px; color:#1e293b; margin:0; }
+.nb-dd-user-mail { font-size:11px; color:#94a3b8; margin:1px 0 0; }
+
+.nb-soon {
+  font-size:9px; font-weight:700; padding:2px 6px; border-radius:999px;
+  background:#f1f5f9; color:#475569; letter-spacing:0;
+}
+
+/* ── Lado derecho ── */
+.nb-right { display:flex; align-items:center; gap:10px; }
+
+.nb-profile-zone { display:none; position:relative; }
+@media(min-width:1024px){ .nb-profile-zone{ display:block; } }
+
+.nb-profile-btn {
+  display:flex; align-items:center; gap:9px;
+  padding:5px 12px 5px 6px; border-radius:50px;
+  background:rgba(255,255,255,.12); border:1px solid rgba(255,255,255,.20);
+  cursor:pointer; min-height:44px; font-family:inherit;
+  transition:background .18s;
+}
+.nb-profile-btn:hover { background:rgba(255,255,255,.22); }
+.nb-profile-text { text-align:left; line-height:1.3; }
+.nb-profile-name { font-size:11px; font-weight:700; color:#fff; text-transform:uppercase; letter-spacing:.04em; margin:0; }
+.nb-profile-mail { font-size:10px; color:rgba(191,219,254,.85); margin:0; }
+
+.nb-avatar {
+  width:32px; height:32px; border-radius:50%; flex-shrink:0;
+  background:linear-gradient(135deg,#60a5fa,#a78bfa);
+  display:flex; align-items:center; justify-content:center;
+  box-shadow:0 0 0 2px rgba(255,255,255,.28);
+}
+
+/* ── Botón de barras (celular) ── */
+.nb-hamburger {
+  display:flex; align-items:center; justify-content:center;
+  width:44px; height:44px; border-radius:12px;
+  background:rgba(255,255,255,.10); border:1px solid rgba(255,255,255,.16);
+  color:#fff; cursor:pointer; flex-shrink:0;
+  transition:background .16s,transform .14s;
+  -webkit-tap-highlight-color:transparent; touch-action:manipulation;
+}
+.nb-hamburger:hover { background:rgba(255,255,255,.20); }
+.nb-hamburger:active { transform:scale(.94); }
+@media(min-width:1024px){ .nb-hamburger{ display:none; } }
+
+/* ── Menú móvil por niveles ── */
+.nb-mwrap {
+  position:fixed; inset:0; z-index:950;
+  visibility:hidden; pointer-events:none;
+  transition:visibility 0s .35s;
+}
+.nb-mwrap.is-open { visibility:visible; pointer-events:auto; transition:visibility 0s; }
+@media(min-width:1024px){ .nb-mwrap{ display:none; } }
+
+.nb-mpanel {
+  position:absolute; inset:0; background:#fff;
+  display:flex; flex-direction:column;
+  padding-top:env(safe-area-inset-top);
+  transform:translateX(100%);
+  transition:transform .35s cubic-bezier(.22,1,.36,1);
+}
+.nb-mpanel.l2 { z-index:2; }
+.nb-mwrap.is-open .nb-mpanel.l1 { transform:translateX(0); }
+.nb-mwrap.is-open.is-sub .nb-mpanel.l1 { transform:translateX(-30%); }
+.nb-mwrap.is-sub .nb-mpanel.l2 { transform:translateX(0); }
+
+.nb-mtop {
+  display:flex; align-items:center; justify-content:space-between;
+  height:64px; padding:0 16px 0 24px; flex-shrink:0;
+}
+.nb-mlogo { height:30px; width:auto; }
+.nb-mclose {
+  width:44px; height:44px; border-radius:50%; border:0; cursor:pointer;
+  background:#f1f5f9; color:#0f172a;
+  display:flex; align-items:center; justify-content:center;
+}
+.nb-mclose:hover { background:#e2e8f0; }
+.nb-mback {
+  display:flex; align-items:center; gap:6px; padding:10px 0;
+  border:0; background:none; cursor:pointer;
+  font-family:inherit; font-size:16px; font-weight:600; color:#0f172a;
+}
+
+.nb-mlist { flex:1; overflow-y:auto; overscroll-behavior:contain; padding:8px 28px 24px; }
+.nb-mtitle { font-size:28px; font-weight:800; letter-spacing:-.5px; color:#0f172a; margin:4px 0 16px; }
+
+.nb-mitem {
+  display:flex; align-items:center; justify-content:space-between; gap:12px;
+  width:100%; padding:12px 0; border:0; background:none; cursor:pointer;
+  font-family:inherit; font-size:26px; font-weight:700; letter-spacing:-.5px;
+  color:#0f172a; text-decoration:none; text-align:left;
+  -webkit-tap-highlight-color:transparent;
+}
+.nb-mitem:hover, .nb-mitem.is-active { color:#2563eb; }
+.nb-mitem.sm { font-size:19px; font-weight:600; }
+.nb-mitem.is-disabled { color:#94a3b8; cursor:default; }
+.nb-mitem.is-disabled:hover { color:#94a3b8; }
+
+.nb-mfoot {
+  flex-shrink:0; border-top:1px solid #f1f5f9;
+  padding:20px 28px calc(24px + env(safe-area-inset-bottom));
+}
+.nb-muser { display:flex; align-items:center; gap:12px; margin-bottom:16px; }
+.nb-muser-name { font-size:15px; font-weight:700; color:#0f172a; margin:0; }
+.nb-muser-mail { font-size:12px; color:#94a3b8; margin:2px 0 0; }
+.nb-mbtn {
+  display:inline-flex; align-items:center; gap:8px;
+  padding:11px 20px; border-radius:999px; cursor:pointer;
+  border:1px solid #e2e8f0; background:#fff; color:#0f172a;
+  font-family:inherit; font-size:14px; font-weight:600;
+}
+.nb-mbtn:hover { border-color:#cbd5e1; background:#f8fafc; }
+
+/* ── Menos movimiento ── */
+@media(prefers-reduced-motion:reduce){
+  .nb-dropdown, .nb-mpanel { animation:none !important; transition:none !important; }
+  .nb-cursor { animation:none !important; }
+}
+`;
