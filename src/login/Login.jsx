@@ -721,20 +721,7 @@ const Login = () => {
            
 
             {/* Stats decorativos */}
-            <div className="mascot-stats fade-in delay-4">
-              <div className="stat-chip">
-                <div className="stat-chip-value">99.9%</div>
-                <div className="stat-chip-label">Disponibilidad</div>
-              </div>
-              <div className="stat-chip">
-                <div className="stat-chip-value">256-bit</div>
-                <div className="stat-chip-label">Cifrado ssl</div>
-              </div>
-              <div className="stat-chip">
-                <div className="stat-chip-value">24/7</div>
-                <div className="stat-chip-label">Monitoreo</div>
-              </div>
-            </div>
+           
           </div>
 
           {/* ══════════════════════════════════
